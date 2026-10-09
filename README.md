@@ -3,58 +3,52 @@
   <img alt="Santiago Groba Alonso — Desarrollador de software e IA" src="assets/banner-light.svg" width="100%">
 </picture>
 
-Estudio Ingeniería en Inteligencia Artificial en la Universidad de San Andrés (egreso previsto 2027) y desde 2020 trabajo de forma independiente para empresas y estudios profesionales: empecé con soporte e infraestructura y hoy desarrollo y opero sistemas en producción.
+<p align="center">
+  <a href="https://linkedin.com/in/santiago-groba"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-santiago--groba-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"></a>
+  <a href="https://preciodeldolar.com.co"><img alt="preciodeldolar.com.co en producción" src="https://img.shields.io/badge/en%20producci%C3%B3n-preciodeldolar.com.co-1c9c5a?style=for-the-badge"></a>
+  <img alt="Buenos Aires" src="https://img.shields.io/badge/Buenos%20Aires-AR-6cc4ff?style=for-the-badge">
+</p>
 
-## En qué trabajo
+Hola 👋 Soy **Santi**. Estudio Ingeniería en Inteligencia Artificial en la UdeSA y desde 2020 trabajo por mi cuenta para empresas y estudios. Empecé administrando su infraestructura y hoy desarrollo y opero sistemas en producción: desde un comparador de tasas de cambio que se actualiza cada 30 minutos hasta un LLM que vive en el servidor de una escribanía.
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      <h3>PrecioDelDolarCo</h3>
-      <img src="https://img.shields.io/badge/estado-en_producci%C3%B3n-2ea44f" alt="en producción"><br><br>
-      Comparador de tasas de cambio en Colombia que desarrollé y opero para un cliente. Un scraper propio releva <b>1.179 casas de cambio cada 30 minutos</b>.<br><br>
-      <sub>Next.js · PostgreSQL · Puppeteer · Prometheus · Grafana</sub><br>
-      <a href="https://preciodeldolar.com.co">preciodeldolar.com.co</a> · <sub>código privado (cliente)</sub>
-    </td>
-    <td width="50%" valign="top">
-      <h3>LLM on-premise para una escribanía</h3>
-      <img src="https://img.shields.io/badge/estado-en_producci%C3%B3n-2ea44f" alt="en producción"><br><br>
-      <b>Qwen 3.6 27B en dos RTX 3090</b> con búsqueda híbrida (vectorial y SQL) sobre el archivo de escrituras, para que los documentos no salgan de la oficina.<br><br>
-      <sub>vLLM · Qdrant · PostgreSQL · Linux</sub><br>
-      <sub>código privado (datos del cliente)</sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <h3>Investigación en razonamiento de LLMs</h3>
-      <img src="https://img.shields.io/badge/paper-en_preparaci%C3%B3n-0969da" alt="paper en preparación"><br><br>
-      Con Juan Wisznia y Luciano Del Corro (UdeSA) estudiamos cuándo conviene preservar o descartar el razonamiento de un LLM entre turnos y cuánto cuesta en tokens.<br><br>
-      <sub>Empezó como mi trabajo final de NLP:</sub> <a href="https://github.com/joacocullen/cot-compress">CoT-Compress</a>
-    </td>
-    <td width="50%" valign="top">
-      <h3>Infraestructura de oficinas</h3>
-      <img src="https://img.shields.io/badge/desde-2020-6e7781" alt="desde 2020"><br><br>
-      Administro la infraestructura de escribanías y estudios: equipos gestionados con Tactical RMM, redes, backups y renovación de hardware.<br><br>
-      <sub>Tactical RMM · Windows · Linux · redes</sub>
-    </td>
-  </tr>
-</table>
+🗣️ español, inglés y un poquito de francés
 
-## Proyectos de la facultad
+## 🚀 En qué trabajo
 
-| Proyecto | Qué hace | Stack |
-|---|---|---|
-| [**CoT-Compress**](https://github.com/joacocullen/cot-compress) | Chat local que comprime el razonamiento del modelo y lo reinyecta como memoria entre turnos | FastAPI · React · Qwen |
-| **DermaVision** | Clasifica 7 tipos de lesiones de piel sobre 10.015 imágenes (macro-F1 0,729), con partición por lesión para evitar leakage | PyTorch · ConvNeXt |
-| **ClearWave** | Elimina ruido en voz con autoencoders y U-Net, evaluado con PESQ, STOI, LSD y SDR | Python |
-| **Plataforma predictiva de pozos** | Pipeline de datos y API de pronóstico de producción de petróleo | Dagster · dbt · MLflow · AWS |
+<p align="center">
+  <a href="https://preciodeldolar.com.co"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/work-pdc-dark.svg"><img alt="PrecioDelDolarCo: comparador de tasas de cambio en producción" src="assets/work-pdc-light.svg" width="49%"></picture></a>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/work-llm-dark.svg"><img alt="LLM on-premise: Qwen 3.6 27B en dos RTX 3090" src="assets/work-llm-light.svg" width="49%"></picture>
+</p>
+<p align="center">
+  <a href="https://github.com/joacocullen/cot-compress"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/work-research-dark.svg"><img alt="Investigación: preservar o descartar el razonamiento de un LLM entre turnos" src="assets/work-research-light.svg" width="49%"></picture></a>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/work-infra-dark.svg"><img alt="Infraestructura de escribanías y estudios desde 2020" src="assets/work-infra-light.svg" width="49%"></picture>
+</p>
 
-## Herramientas
+## 🎓 Proyectos de la facultad
 
-<img src="https://skillicons.dev/icons?i=py,ts,c,cpp,java,pytorch,postgres,nextjs,react,fastapi,docker,linux,aws,nginx,prometheus,grafana,githubactions&perline=9" alt="Python, TypeScript, C, C++, Java, PyTorch, PostgreSQL, Next.js, React, FastAPI, Docker, Linux, AWS, nginx, Prometheus, Grafana, GitHub Actions">
+<p align="center">
+  <a href="https://github.com/joacocullen/cot-compress"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/uni-cot-dark.svg"><img alt="CoT-Compress: compresión del razonamiento entre turnos" src="assets/uni-cot-light.svg" width="49%"></picture></a>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/uni-derma-dark.svg"><img alt="DermaVision: clasificación de lesiones de piel, 0,729 de macro-F1" src="assets/uni-derma-light.svg" width="49%"></picture>
+</p>
+<p align="center">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/uni-clearwave-dark.svg"><img alt="ClearWave: eliminación de ruido en voz con autoencoders y U-Net" src="assets/uni-clearwave-light.svg" width="49%"></picture>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/uni-pozos-dark.svg"><img alt="Plataforma predictiva de producción de pozos" src="assets/uni-pozos-light.svg" width="49%"></picture>
+</p>
 
-<sub>También: vLLM · Ollama · Qdrant · dbt · Dagster · MLflow</sub>
+## 🧰 Herramientas
 
-## Contacto
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://skillicons.dev/icons?i=py,ts,c,cpp,java,pytorch,postgres,nextjs,react,fastapi,docker,linux,aws,nginx,prometheus,grafana,githubactions&perline=9&theme=dark">
+    <img alt="Python, TypeScript, C, C++, Java, PyTorch, PostgreSQL, Next.js, React, FastAPI, Docker, Linux, AWS, nginx, Prometheus, Grafana, GitHub Actions" src="https://skillicons.dev/icons?i=py,ts,c,cpp,java,pytorch,postgres,nextjs,react,fastapi,docker,linux,aws,nginx,prometheus,grafana,githubactions&perline=9&theme=light">
+  </picture>
+</p>
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-santiago--groba-0A66C2?logo=linkedin&logoColor=white)](https://linkedin.com/in/santiago-groba)
+<p align="center"><sub>y también vLLM · Ollama · Qdrant · dbt · Dagster · MLflow</sub></p>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/footer-dark.svg">
+  <img alt="" src="assets/footer-light.svg" width="100%">
+</picture>
+
+<p align="center"><sub>hecho en Buenos Aires 🇦🇷</sub></p>
