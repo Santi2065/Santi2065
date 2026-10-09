@@ -410,7 +410,7 @@ def banner(P):
     body.append(t)
     t, wname = text("disp", "Santiago Groba Alonso", 64, 62, 160, P["text"])
     body.append(t)
-    t, _ = text("med", "Desarrollador de software e IA", 27, 66, 205, P["text2"])
+    t, _ = text("med", "Desarrollador de Software e Inteligencia Artificial", 27, 66, 205, P["text2"])
     body.append(t)
     t, _ = text("monob", "$", 21, 66, 256, P["gold"])
     body.append(t)
@@ -447,7 +447,7 @@ def banner(P):
             body.append(arrow_down(ax, y1, y2, P["cel"]))
             for k in range(2):
                 body.append(packet(f"M{ax} {y1 + 2} L{ax} {y2 - 8}", P["cel"], 1.6, k * 0.8 + i * 0.4, r=4.2))
-    label = "Santiago Groba Alonso — Desarrollador de software e IA"
+    label = "Santiago Groba Alonso — Desarrollador de Software e Inteligencia Artificial"
     assert wname < bx - 100, wname
     return svg(W, H, "".join(body), label, "".join(defs))
 
@@ -486,9 +486,9 @@ def card_pdc(P):
     out = [frame, card_head(P, "PrecioDelDolarCo", "Comparador de tasas de cambio en Colombia")]
     out.append(badge(530, 33, "en producción", P["green"], P, pulse=True))
 
-    s1, _, _ = stat(30, 142, "1.179", "casas de cambio relevadas", P, size=46)
+    s1, _, _ = stat(30, 142, "1.182", "casas de cambio en 62 ciudades", P, size=46)
     out.append(s1)
-    for k, item in enumerate(["Compara precios de compra y venta", "Panel para dueños con planes pagos"]):
+    for k, item in enumerate(["Scraper con 80 fuentes y 13 parsers", "Panel para dueños con planes pagos"]):
         y = 195 + k * 25
         out.append(icon_check(38, y - 5, P["gold"]))
         t, _ = text("reg", item, 15.5, 56, y, P["text2"])
@@ -560,9 +560,9 @@ def card_llm(P):
     defs, frame = card_frame(CW, CH, P, P["cel"], "l")
     out = [frame, card_head(P, "LLM on-premise", "Para el archivo de escrituras de una escribanía")]
     out.append(badge(530, 33, "en producción", P["green"], P, pulse=True))
-    s1, _, _ = stat(30, 140, "27B", "parámetros · Qwen 3.6", P, size=42)
+    s1, _, _ = stat(30, 140, "27B", "parámetros · Qwen3.8 en FP8", P, size=42)
     out.append(s1)
-    s2, _, _ = stat(30, 202, "2", "RTX 3090 en paralelo (vLLM)", P, unit="GPUs", size=42)
+    s2, _, _ = stat(30, 202, "~3", "por respuesta (antes ~10 s)", P, unit="s", size=42)
     out.append(s2)
 
     # límite de la oficina: línea punteada con candado
@@ -624,24 +624,32 @@ def card_research(P):
                f'keyTimes="0;0.30;0.36;0.62;0.68;0.93;1" dur="{cycle}s" repeatCount="indefinite"/></rect>')
     out.append(arrow_right(tx + tw + 8, 470, ty + th / 2, P["muted"]))
     out.append(bubble(474, "T2"))
-    # tokens que cuesta: barra chica sincronizada
-    tk, _ = mono_label("costo en tokens", 12.5, 102, 206, P)
+    # tokens de entrada por episodio, medidos en Terminal-Bench 2.0 (pruebas exploratorias propias):
+    # preservar 83.463 · comprimir (structured) 41.954 · descartar 91.211 -> descartar NO sale más barato
+    tk, _ = mono_label("tokens de entrada", 12.5, 102, 211, P)
     out.append(tk)
-    kx, kw = 220, 150
-    out.append(f'<rect x="{kx}" y="196" width="{kw}" height="10" rx="5" fill="{P["inner"]}" stroke="{P["cardline"]}"/>')
-    out.append(f'<rect x="{kx}" y="196" width="{kw}" height="10" rx="5" fill="{P["gold"]}" fill-opacity="0.85">'
-               f'<animate attributeName="width" values="{kw};{kw};58;58;6;6;{kw}" '
+    kx, kw = 248, 150
+    tok = {"preservar": 83463, "comprimir": 41954, "descartar": 91211}
+    wmax = max(tok.values())
+    wp, wc, wd = (ntos(kw * tok[k] / wmax) for k in ("preservar", "comprimir", "descartar"))
+    out.append(f'<rect x="{kx}" y="201" width="{kw}" height="10" rx="5" fill="{P["inner"]}" stroke="{P["cardline"]}"/>')
+    out.append(f'<rect x="{kx}" y="201" width="{wp}" height="10" rx="5" fill="{P["gold"]}" fill-opacity="0.85">'
+               f'<animate attributeName="width" values="{wp};{wp};{wc};{wc};{wd};{wd};{wp}" '
                f'keyTimes="0;0.30;0.36;0.62;0.68;0.93;1" dur="{cycle}s" repeatCount="indefinite"/></rect>')
-    states = [("preservar · viaja todo", "0;0.30;0.33;0.95;0.98;1", "1;1;0;0;1;1"),
-              ("comprimir · viaja un resumen", "0;0.33;0.36;0.62;0.65;1", "0;0;1;1;0;0"),
-              ("descartar · solo la respuesta", "0;0.65;0.68;0.93;0.96;1", "0;0;1;1;0;0")]
-    for i, (lab, kt, vals) in enumerate(states):
-        d, _ = F["mono"].d(lab, 14.5, 102, 184)
-        out.append(f'<path d="{d}" fill="{P["text2"]}" opacity="{1 if i == 0 else 0}">'
-                   f'<animate attributeName="opacity" values="{vals}" keyTimes="{kt}" dur="{cycle}s" '
-                   f'repeatCount="indefinite"/></path>')
+    states = [("preservar · viaja todo", "83k", "0;0.30;0.33;0.95;0.98;1", "1;1;0;0;1;1"),
+              ("comprimir · viaja un resumen", "42k", "0;0.33;0.36;0.62;0.65;1", "0;0;1;1;0;0"),
+              ("descartar · solo la respuesta", "91k", "0;0.65;0.68;0.93;0.96;1", "0;0;1;1;0;0")]
+    for i, (lab, num, kt, vals) in enumerate(states):
+        anim = (f'<animate attributeName="opacity" values="{vals}" keyTimes="{kt}" dur="{cycle}s" '
+                f'repeatCount="indefinite"/>')
+        d, _ = F["mono"].d(lab, 14.5, 102, 189)
+        out.append(f'<path d="{d}" fill="{P["text2"]}" opacity="{1 if i == 0 else 0}">{anim}</path>')
+        d, _ = F["monob"].d(num, 13, kx + kw + 10, 211)
+        out.append(f'<path d="{d}" fill="{P["gold"]}" opacity="{1 if i == 0 else 0}">{anim}</path>')
+    src, _ = mono_label("Terminal-Bench 2.0 · pruebas exploratorias propias", 11, 102, 230, P)
+    out.append(src)
     link, wl = text("med", "CoT-Compress ↗", 15, 530, 257, P["cel"], anchor="end")
-    t, _ = mono_label("con J. Wisznia y L. Del Corro (UdeSA)", 14, 30, 257, P)
+    t, _ = mono_label("dirigido por Juan Wisznia (UdeSA)", 14, 30, 257, P)
     out += [t, link]
     return svg(CW, CH, "".join(out), "Investigación: razonamiento de LLMs entre turnos, paper en preparación", defs)
 
@@ -658,7 +666,7 @@ def pc_icon(cx, cy, P):
 def card_infra(P):
     """Infraestructura: los equipos reportan al RMM; una alerta se detecta y se resuelve."""
     defs, frame = card_frame(CW, CH, P, P["green"], "i")
-    out = [frame, card_head(P, "Infraestructura", "Escribanías y estudios de Buenos Aires")]
+    out = [frame, card_head(P, "Infraestructura", "Escribanías y pymes de CABA")]
     out.append(badge(530, 33, "desde 2020", P["text2"], P))
     items = ["Soporte remoto de equipos", "Redes, backups y acceso remoto", "Renovación de hardware"]
     for k, it in enumerate(items):
@@ -836,7 +844,7 @@ def uni_clearwave(P):
 def uni_pozos(P):
     """Plataforma de pozos: curva de declinación con histórico y pronóstico."""
     defs, out = uni_frame(P, P["gold"], "up", "Plataforma de pozos", "Ing. de software · 2026",
-                          "Pipeline de datos y API de pronóstico de producción de petróleo.")
+                          "Pronóstico a 60 meses de 4.929 pozos con un modelo Arps + LSTM.")
     c, _ = chips(28, 150, ["Dagster", "dbt", "MLflow", "AWS"], P, size=14, h=26, maxx=340)
     out.append(c)
     ax0, ax1, ay0, ay1 = 362, 530, 72, 176   # área del gráfico
