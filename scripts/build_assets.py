@@ -486,11 +486,13 @@ def card_pdc(P):
     out = [frame, card_head(P, "PrecioDelDolarCo", "Comparador de tasas de cambio en Colombia")]
     out.append(badge(530, 33, "en producción", P["green"], P, pulse=True))
 
-    s1, _, _ = stat(30, 140, "1.179", "casas de cambio relevadas", P, size=42)
+    s1, _, _ = stat(30, 142, "1.179", "casas de cambio relevadas", P, size=46)
     out.append(s1)
-    s2, _, wbig = stat(30, 202, "30", "entre actualizaciones", P, unit="min", size=42)
-    out.append(s2)
-    out.append(icon_refresh(30 + wbig + 24, 191, 9, P["gold"]))
+    for k, item in enumerate(["Compara precios de compra y venta", "Panel para dueños con planes pagos"]):
+        y = 195 + k * 25
+        out.append(icon_check(38, y - 5, P["gold"]))
+        t, _ = text("reg", item, 15.5, 56, y, P["text2"])
+        out.append(t)
 
     # mapa de Colombia con las ciudades donde hay casas de cambio
     mx, my, mh = 410, 66, 142

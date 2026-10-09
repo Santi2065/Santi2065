@@ -9,7 +9,7 @@
   <img alt="Buenos Aires" src="https://img.shields.io/badge/Buenos%20Aires-AR-6cc4ff?style=for-the-badge">
 </p>
 
-Hola 👋 Soy **Santi**. Estudio Ingeniería en Inteligencia Artificial en la UdeSA y desde 2020 trabajo por mi cuenta para empresas y estudios. Empecé administrando su infraestructura y hoy desarrollo y opero sistemas en producción: desde un comparador de tasas de cambio que se actualiza cada 30 minutos hasta un LLM que vive en el servidor de una escribanía.
+Hola 👋 Soy **Santi**. Estudio Ingeniería en Inteligencia Artificial en la UdeSA y desde 2020 trabajo por mi cuenta para empresas y estudios. Empecé administrando su infraestructura y hoy desarrollo y opero sistemas en producción: desde un comparador que releva 1.179 casas de cambio en Colombia hasta un LLM que vive en el servidor de una escribanía.
 
 🗣️ español, inglés y un poquito de francés
 
