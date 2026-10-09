@@ -17,7 +17,7 @@ Hola 👋 Soy **Santi**. Estudio Ingeniería en Inteligencia Artificial en la Ud
 
 <p align="center">
   <a href="https://preciodeldolar.com.co"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/work-pdc-dark.svg"><img alt="PrecioDelDolarCo: comparador de tasas de cambio en producción" src="assets/work-pdc-light.svg" width="49%"></picture></a>
-  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/work-llm-dark.svg"><img alt="LLM on-premise: Qwen 3.6 27B en dos RTX 3090" src="assets/work-llm-light.svg" width="49%"></picture>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/work-llm-dark.svg"><img alt="LLM on-premise: Qwen 3.6 27B en dos RTX 3090, dentro de la oficina" src="assets/work-llm-light.svg" width="49%"></picture>
 </p>
 <p align="center">
   <a href="https://github.com/joacocullen/cot-compress"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/work-research-dark.svg"><img alt="Investigación: preservar o descartar el razonamiento de un LLM entre turnos" src="assets/work-research-light.svg" width="49%"></picture></a>

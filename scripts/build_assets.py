@@ -3,15 +3,15 @@
 
 Todo el texto se convierte en trazos (paths) con HarfBuzz + fontTools, así se ve
 igual en cualquier sistema sin depender de fuentes instaladas. Las animaciones
-usan CSS y SMIL, que GitHub muestra en imágenes SVG.
+que necesitan recorte (clip) usan SMIL; las de giro y parpadeo usan CSS.
 
 Uso: python3 scripts/build_assets.py assets
 Requiere: pip install uharfbuzz fonttools brotli; fuentes Inter y JetBrains Mono
 (INTER_DIR y MONO_DIR para indicar dónde están).
 """
 import io
-import os
 import math
+import os
 import random
 import sys
 from pathlib import Path
@@ -24,6 +24,43 @@ from fontTools.ttLib import TTFont
 HERE = Path(__file__).resolve().parent
 INTER = Path(os.environ.get("INTER_DIR", "/usr/share/fonts/opentype/inter"))
 MONO_DIR = Path(os.environ.get("MONO_DIR", HERE / "npm/node_modules/@fontsource/jetbrains-mono/files"))
+
+# ---------------------------------------------------------------- Colombia (lon, lat)
+
+COLOMBIA = [
+    (-77.36, 8.67), (-76.9, 8.6), (-76.3, 9.3), (-75.6, 9.9), (-75.3, 10.5), (-74.8, 11.0),
+    (-74.2, 11.3), (-73.5, 11.3), (-72.9, 11.6), (-72.2, 12.0), (-71.7, 12.45), (-71.1, 12.1),
+    (-71.4, 11.8), (-72.2, 11.2), (-72.7, 10.6), (-73.0, 9.7), (-73.4, 9.1), (-72.9, 8.6),
+    (-72.4, 8.2), (-72.5, 7.6), (-72.0, 7.0), (-71.1, 6.9), (-70.0, 6.9), (-69.3, 6.1),
+    (-68.4, 6.2), (-67.5, 6.2), (-67.8, 5.3), (-67.5, 4.2), (-67.3, 3.5), (-67.8, 2.9),
+    (-67.3, 2.3), (-67.1, 1.9), (-66.9, 1.2), (-68.2, 0.4), (-69.4, -0.8), (-69.5, -1.2),
+    (-69.95, -4.23), (-70.4, -3.8), (-70.9, -2.6), (-71.6, -2.3), (-72.6, -1.8), (-73.6, -1.2),
+    (-74.3, -0.6), (-74.8, -0.2), (-75.3, -0.1), (-76.0, 0.3), (-76.9, 0.3), (-77.5, 0.7),
+    (-78.2, 1.0), (-78.9, 1.5), (-78.6, 2.2), (-77.9, 2.7), (-77.4, 3.3), (-77.1, 3.9),
+    (-77.3, 4.6), (-77.5, 5.4), (-77.4, 6.3), (-77.8, 7.0), (-77.6, 7.6),
+]
+# ciudades con casas de cambio: (lon, lat, peso)
+CIUDADES = [
+    (-74.07, 4.71, 3), (-75.56, 6.25, 3), (-76.52, 3.44, 2), (-74.8, 10.96, 2), (-75.5, 10.4, 2),
+    (-72.5, 7.89, 3), (-73.12, 7.13, 2), (-75.69, 4.81, 1), (-74.2, 11.24, 1), (-75.23, 4.44, 1),
+    (-77.28, 1.21, 1), (-75.52, 5.07, 1), (-73.63, 4.15, 1), (-75.88, 8.75, 1), (-75.28, 2.93, 1),
+    (-75.68, 4.53, 1), (-73.25, 10.46, 1), (-76.6, 2.44, 1), (-72.9, 11.54, 1), (-73.36, 5.53, 1),
+    (-69.94, -4.21, 1), (-72.4, 5.34, 1), (-77.64, 0.83, 2), (-72.24, 11.38, 2), (-76.65, 5.69, 1),
+    (-75.4, 9.3, 1), (-75.6, 1.61, 1),
+]
+
+
+def colombia_projection(box_x, box_y, box_h):
+    k = math.cos(math.radians(4.0))
+    xs = [lon * k for lon, _ in COLOMBIA]
+    ys = [-lat for _, lat in COLOMBIA]
+    minx, maxx, miny, maxy = min(xs), max(xs), min(ys), max(ys)
+    s = box_h / (maxy - miny)
+
+    def f(lon, lat):
+        return box_x + (lon * k - minx) * s, box_y + (-lat - miny) * s
+
+    return f, (maxx - minx) * s
 
 
 # ---------------------------------------------------------------- tipografía
@@ -115,13 +152,13 @@ def wrap(font, s, size, maxw):
 PAL = {
     "dark": dict(bg0="#0a1020", bg1="#111c33", card="#0f1828", cardline="#203049",
                  text="#eaf1fa", text2="#a9b8cc", muted="#73859e", cel="#6cc4ff",
-                 gold="#f6c453", green="#3ddc97", grid="#1c2a44", chip="#152238",
-                 chipline="#253753", chiptext="#cfe1f5", inner="#0b1322",
+                 gold="#f6c453", green="#3ddc97", red="#ff7b72", grid="#1c2a44", chip="#152238",
+                 chipline="#253753", chiptext="#cfe1f5", inner="#0b1322", land="#172641",
                  glowA=0.24, glowB=0.13),
     "light": dict(bg0="#ffffff", bg1="#ebf4fe", card="#ffffff", cardline="#d3e1f1",
                   text="#0d1a2c", text2="#3b4b61", muted="#687a92", cel="#1a72d6",
-                  gold="#b8790c", green="#14965a", grid="#dce7f4", chip="#edf4fc",
-                  chipline="#d0dff1", chiptext="#1b3a5e", inner="#f3f8fd",
+                  gold="#b8790c", green="#14965a", red="#d1242f", grid="#dce7f4", chip="#edf4fc",
+                  chipline="#d0dff1", chiptext="#1b3a5e", inner="#f3f8fd", land="#dbe8f7",
                   glowA=0.20, glowB=0.18),
 }
 
@@ -135,10 +172,6 @@ CSS = """<style>
 @keyframes blink{50%{opacity:0}}
 .led{animation:led 1.6s ease-in-out infinite}
 @keyframes led{50%{opacity:.2}}
-.ping{opacity:0;animation:ping 3s linear infinite}
-@keyframes ping{0%{opacity:1}35%{opacity:0}100%{opacity:0}}
-.scan{animation:scan 3s linear infinite}
-@keyframes scan{from{transform:translateX(0)}to{transform:translateX(150px)}}
 .bob{animation:bob 1.2s ease-in-out infinite}
 @keyframes bob{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
 .flow{animation:flow 3s linear infinite}
@@ -153,7 +186,7 @@ def svg(w, h, body, label, defs=""):
             f"<title>{label}</title><defs>{defs}</defs>{CSS}{body}</svg>\n")
 
 
-def card_frame(w, h, P, accent, uid, gx=0.9, gy=0.0):
+def card_frame(w, h, P, accent, uid, gx=0.95, gy=0.05):
     defs = (f'<radialGradient id="{uid}g" cx="{gx}" cy="{gy}" r="0.85">'
             f'<stop offset="0" stop-color="{accent}" stop-opacity="{P["glowA"]}"/>'
             f'<stop offset="1" stop-color="{accent}" stop-opacity="0"/></radialGradient>'
@@ -180,11 +213,11 @@ def badge(xr, y, label, color, P, pulse=False):
     return "".join(out)
 
 
-def chip(x, y, label, P, size=15, h=28, pad=11):
-    w = F["mono"].width(label, size) + 2 * pad
-    t, _ = text("mono", label, size, x + pad, y + h / 2 + size * 0.36, P["chiptext"])
-    return (f'<rect x="{ntos(x)}" y="{y}" width="{ntos(w)}" height="{h}" rx="{h / 2}" '
-            f'fill="{P["chip"]}" stroke="{P["chipline"]}"/>' + t), w
+def chip(x, y, label, P, size=15, h=28, pad=11, font="mono", fill=None, line=None, color=None):
+    w = F[font].width(label, size) + 2 * pad
+    t, _ = text(font, label, size, x + pad, y + h / 2 + size * 0.36, color or P["chiptext"])
+    return (f'<rect x="{ntos(x)}" y="{ntos(y)}" width="{ntos(w)}" height="{h}" rx="{h / 2}" '
+            f'fill="{fill or P["chip"]}" stroke="{line or P["chipline"]}"/>' + t), w
 
 
 def chips(x, y, labels, P, size=15, h=28, gap=8, maxx=None):
@@ -198,7 +231,12 @@ def chips(x, y, labels, P, size=15, h=28, gap=8, maxx=None):
     return "".join(out), cx - gap
 
 
-# ---------------------------------------------------------------- íconos
+def mono_label(s, size, x, y, P, color=None, anchor="start"):
+    t, w = text("mono", s, size, x, y, color or P["muted"], anchor=anchor)
+    return t, w
+
+
+# ---------------------------------------------------------------- íconos y piezas
 
 def icon_db(cx, cy, c):
     return (f'<g fill="none" stroke="{c}" stroke-width="2" stroke-linecap="round">'
@@ -222,10 +260,11 @@ def icon_server(cx, cy, c, led):
             f'<circle class="led" style="animation-delay:.8s" cx="{cx + 6}" cy="{cy + 6}" r="2" fill="{led}"/>')
 
 
-def icon_lock(cx, cy, c):
-    return (f'<g fill="none" stroke="{c}" stroke-width="1.8" stroke-linecap="round">'
-            f'<rect x="{cx - 6}" y="{cy - 2}" width="12" height="10" rx="2.2"/>'
-            f'<path d="M{cx - 3.6} {cy - 2}v-3a3.6 3.6 0 0 1 7.2 0v3"/></g>')
+def icon_lock(cx, cy, c, k=1.0):
+    return (f'<g transform="translate({ntos(cx)} {ntos(cy)}) scale({k})" fill="none" stroke="{c}" '
+            f'stroke-width="1.8" stroke-linecap="round">'
+            f'<rect x="-6" y="-2" width="12" height="10" rx="2.2"/>'
+            f'<path d="M-3.6 -2v-3a3.6 3.6 0 0 1 7.2 0v3"/></g>')
 
 
 def icon_check(cx, cy, c):
@@ -234,12 +273,32 @@ def icon_check(cx, cy, c):
             f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>')
 
 
+def icon_docs(cx, cy, c, c2):
+    """Pila de dos documentos."""
+    out = []
+    for dx, dy in ((5, -5), (0, 0)):
+        x, y = cx - 11 + dx, cy - 14 + dy
+        out.append(f'<path d="M{x} {y}h14l8 8v20h-22z" fill="{c2}" stroke="{c}" stroke-width="1.6" '
+                   f'stroke-linejoin="round"/>')
+        if dy == 0:
+            for k in range(3):
+                out.append(f'<line x1="{x + 4}" y1="{y + 12 + k * 5}" x2="{x + 17}" y2="{y + 12 + k * 5}" '
+                           f'stroke="{c}" stroke-width="1.4" stroke-linecap="round" stroke-opacity="0.7"/>')
+    return "".join(out)
+
+
+def icon_chat(cx, cy, c, c2):
+    return (f'<path d="M{cx - 14} {cy - 10}h28a4 4 0 0 1 4 4v12a4 4 0 0 1 -4 4h-14l-8 7v-7h-6a4 4 0 0 1 -4 -4v-12'
+            f'a4 4 0 0 1 4 -4z" fill="{c2}" stroke="{c}" stroke-width="1.6" stroke-linejoin="round"/>'
+            f'<circle cx="{cx - 6}" cy="{cy}" r="1.8" fill="{c}"/><circle cx="{cx}" cy="{cy}" r="1.8" fill="{c}"/>'
+            f'<circle cx="{cx + 6}" cy="{cy}" r="1.8" fill="{c}"/>')
+
+
 def icon_refresh(cx, cy, r, c):
-    # arco de 300 grados con punta de flecha, gira despacio
     a0, a1 = math.radians(-60), math.radians(240)
     x0, y0 = cx + r * math.cos(a0), cy + r * math.sin(a0)
     x1, y1 = cx + r * math.cos(a1), cy + r * math.sin(a1)
-    tip = (f'M{ntos(x0 - 5)} {ntos(y0 - 1)}L{ntos(x0 + 1)} {ntos(y0 + 1)}L{ntos(x0 - 1)} {ntos(y0 - 6)}')
+    tip = f'M{ntos(x0 - 5)} {ntos(y0 - 1)}L{ntos(x0 + 1)} {ntos(y0 + 1)}L{ntos(x0 - 1)} {ntos(y0 - 6)}'
     return (f'<g class="spin-slow"><circle cx="{cx}" cy="{cy}" r="{r + 3}" fill="none"/>'
             f'<path d="M{ntos(x1)} {ntos(y1)}A{r} {r} 0 1 1 {ntos(x0)} {ntos(y0)}" fill="none" '
             f'stroke="{c}" stroke-width="2.4" stroke-linecap="round"/>'
@@ -260,10 +319,28 @@ def arrow_right(x1, x2, y, c):
 
 
 def packet(path, c, dur, begin, r=4):
+    """Punto que recorre un camino, repitiendo."""
     return (f'<circle r="{r}" fill="{c}" opacity="0">'
             f'<animateMotion path="{path}" dur="{dur}s" begin="{begin}s" repeatCount="indefinite"/>'
             f'<animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.8;1" '
             f'dur="{dur}s" begin="{begin}s" repeatCount="indefinite"/></circle>')
+
+
+def packet_window(path, c, cycle, t0, t1, r=4):
+    """Punto que recorre un camino solo entre t0 y t1 (fracciones) de un ciclo."""
+    e = 0.004
+    return (f'<circle r="{r}" fill="{c}" opacity="0">'
+            f'<animateMotion path="{path}" dur="{cycle}s" keyPoints="0;0;1;1" '
+            f'keyTimes="0;{t0};{t1};1" calcMode="linear" repeatCount="indefinite"/>'
+            f'<animate attributeName="opacity" values="0;0;1;1;0;0" '
+            f'keyTimes="0;{t0};{t0 + e};{t1 - e};{t1};1" dur="{cycle}s" repeatCount="indefinite"/></circle>')
+
+
+def show_window(inner, cycle, t0, t1):
+    """Muestra un grupo solo entre t0 y t1 (fracciones) de un ciclo."""
+    e = 0.004
+    return (f'<g opacity="0">{inner}<animate attributeName="opacity" values="0;0;1;1;0;0" '
+            f'keyTimes="0;{t0};{t0 + e};{t1 - e};{t1};1" dur="{cycle}s" repeatCount="indefinite"/></g>')
 
 
 # ---------------------------------------------------------------- banner
@@ -335,28 +412,29 @@ def banner(P):
     body.append(t)
     t, _ = text("med", "Desarrollador de software e IA", 27, 66, 205, P["text2"])
     body.append(t)
-    t, wp = text("monob", "$", 21, 66, 256, P["gold"])
+    t, _ = text("monob", "$", 21, 66, 256, P["gold"])
     body.append(t)
     x0 = 66 + F["mono"].width("$ ", 21)
     tdefs, tbody = typewriter(PHRASES, x0, 256, 21, P)
     defs.append(tdefs)
     body.append(tbody)
 
-    # pipeline vertical: datos -> modelos -> producción
+    # circuito vertical: datos -> modelos -> producción, con paquetes bajando
     bx, bw, bh = 914, 240, 58
     ys = [36, 131, 226]
     labels = ["datos", "modelos", "producción"]
-    icons = [icon_db, icon_net, None]
     for i, (y, lab) in enumerate(zip(ys, labels)):
         last = i == 2
         stroke = P["gold"] if last else P["cardline"]
         body.append(f'<rect x="{bx}" y="{y}" width="{bw}" height="{bh}" rx="14" fill="{P["card"]}" '
                     f'fill-opacity="0.9" stroke="{stroke}" stroke-width="{2 if last else 1.5}"/>')
         cy = y + bh / 2
-        if last:
-            body.append(icon_server(bx + 34, cy, P["gold"], P["green"]))
+        if i == 0:
+            body.append(icon_db(bx + 34, cy, P["cel"]))
+        elif i == 1:
+            body.append(icon_net(bx + 34, cy, P["cel"]))
         else:
-            body.append(icons[i](bx + 34, cy, P["cel"]))
+            body.append(icon_server(bx + 34, cy, P["gold"], P["green"]))
         t, _ = text("mono", lab, 20, bx + 66, cy + 7, P["text"])
         body.append(t)
         if last:
@@ -368,7 +446,7 @@ def banner(P):
             y1, y2 = y + bh + 5, ys[i + 1] - 5
             body.append(arrow_down(ax, y1, y2, P["cel"]))
             for k in range(2):
-                body.append(packet(f"M{ax} {y1} L{ax} {y2 - 6}", P["cel"], 1.4, k * 0.7 + i * 0.35, r=3.6))
+                body.append(packet(f"M{ax} {y1 + 2} L{ax} {y2 - 8}", P["cel"], 1.6, k * 0.8 + i * 0.4, r=4.2))
     label = "Santiago Groba Alonso — Desarrollador de software e IA"
     assert wname < bx - 100, wname
     return svg(W, H, "".join(body), label, "".join(defs))
@@ -388,57 +466,59 @@ def card_head(P, title, subtitle):
     return "".join(out)
 
 
-def stat(x, y, big, label, P, unit=None):
+def stat(x, y, big, label, P, unit=None, size=46):
     out = []
-    t, wb = text("disp", big, 50, x, y, P["text"])
+    t, wb = text("disp", big, size, x, y, P["text"])
     out.append(t)
     wu = 0
     if unit:
-        t, wu = text("dispsemi", unit, 26, x + wb + 6, y, P["text2"])
+        t, wu = text("dispsemi", unit, size * 0.55, x + wb + 6, y, P["text2"])
         out.append(t)
         wu += 6
-    t, wl = text("reg", label, 15, x + 2, y + 26, P["muted"])
+    t, wl = text("reg", label, 15, x + 2, y + 24, P["muted"])
     out.append(t)
     return "".join(out), max(wb + wu, wl), wb + wu
 
 
 def card_pdc(P):
-    defs, frame = card_frame(CW, CH, P, P["gold"], "p", gx=0.95, gy=0.05)
+    """PrecioDelDolarCo: el scraper barre el mapa de Colombia cada 30 minutos."""
+    defs, frame = card_frame(CW, CH, P, P["gold"], "p")
     out = [frame, card_head(P, "PrecioDelDolarCo", "Comparador de tasas de cambio en Colombia")]
     out.append(badge(530, 33, "en producción", P["green"], P, pulse=True))
-    s1, w1, _ = stat(30, 156, "1.179", "casas de cambio", P)
-    out.append(s1)
-    x2 = 30 + w1 + 36
-    s2, w2, wbig = stat(x2, 156, "30", "entre actualizaciones", P, unit="min")
-    out.append(s2)
-    out.append(icon_refresh(x2 + wbig + 22, 145, 9, P["gold"]))
 
-    # "radar" del scraper: puntos que se encienden cuando pasa la línea
-    rx0, ry0, rw, rh = 382, 104, 150, 104
-    ecx, ecy = rx0 + rw / 2, ry0 + rh / 2
-    defs += (f'<clipPath id="pradar"><ellipse cx="{ecx}" cy="{ecy}" rx="{rw / 2}" ry="{rh / 2}"/></clipPath>'
-             f'<linearGradient id="ptrail" x1="0" y1="0" x2="1" y2="0">'
+    s1, _, _ = stat(30, 140, "1.179", "casas de cambio relevadas", P, size=42)
+    out.append(s1)
+    s2, _, wbig = stat(30, 202, "30", "entre actualizaciones", P, unit="min", size=42)
+    out.append(s2)
+    out.append(icon_refresh(30 + wbig + 24, 191, 9, P["gold"]))
+
+    # mapa de Colombia con las ciudades donde hay casas de cambio
+    mx, my, mh = 410, 66, 142
+    proj, mw = colombia_projection(mx, my, mh)
+    pts = " ".join(f"{ntos(x)},{ntos(y)}" for x, y in (proj(lo, la) for lo, la in COLOMBIA))
+    defs += (f'<clipPath id="pmap"><polygon points="{pts}"/></clipPath>'
+             f'<linearGradient id="ptrail" x1="0" y1="0" x2="0" y2="1">'
              f'<stop offset="0" stop-color="{P["gold"]}" stop-opacity="0"/>'
-             f'<stop offset="1" stop-color="{P["gold"]}" stop-opacity="0.22"/></linearGradient>')
-    rnd = random.Random(11)
-    pts = []
-    while len(pts) < 38:
-        x, y = rx0 + 10 + rnd.random() * (rw - 20), ry0 + 8 + rnd.random() * (rh - 16)
-        if ((x - ecx) / (rw / 2 - 8)) ** 2 + ((y - ecy) / (rh / 2 - 8)) ** 2 <= 1:
-            pts.append((x, y))
-    out.append(f'<ellipse cx="{ecx}" cy="{ecy}" rx="{rw / 2}" ry="{rh / 2}" fill="{P["inner"]}" '
-               f'stroke="{P["cardline"]}" stroke-dasharray="4 5"/>')
-    g = [f'<g clip-path="url(#pradar)">']
-    for x, y in pts:
-        g.append(f'<circle cx="{ntos(x)}" cy="{ntos(y)}" r="2.6" fill="{P["muted"]}" fill-opacity="0.5"/>')
-    for x, y in pts:
-        delay = (x - rx0) / rw * 3
-        g.append(f'<circle class="ping" style="animation-delay:{delay:.2f}s" cx="{ntos(x)}" cy="{ntos(y)}" '
-                 f'r="3.4" fill="{P["gold"]}"/>')
-    g.append(f'<g class="scan"><rect x="{rx0 - 40}" y="{ry0}" width="40" height="{rh}" fill="url(#ptrail)"/>'
-             f'<line x1="{rx0}" y1="{ry0}" x2="{rx0}" y2="{ry0 + rh}" stroke="{P["gold"]}" stroke-width="2"/></g>')
-    g.append("</g>")
-    out.append("".join(g))
+             f'<stop offset="1" stop-color="{P["gold"]}" stop-opacity="0.28"/></linearGradient>')
+    out.append(f'<polygon points="{pts}" fill="{P["land"]}" stroke="{P["cel"]}" stroke-opacity="0.75" '
+               f'stroke-width="1.3" stroke-linejoin="round"/>')
+    cycle = 3.2
+    for lo, la, wt in CIUDADES:
+        x, y = proj(lo, la)
+        r = 1.8 + wt * 0.9
+        out.append(f'<circle cx="{ntos(x)}" cy="{ntos(y)}" r="{ntos(r)}" fill="{P["muted"]}" fill-opacity="0.55"/>')
+        delay = (y - my) / mh * cycle
+        out.append(f'<circle cx="{ntos(x)}" cy="{ntos(y)}" r="{ntos(r + 1.2)}" fill="{P["gold"]}" opacity="0">'
+                   f'<animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.02;0.18;0.5;1" '
+                   f'dur="{cycle}s" begin="{delay:.2f}s" repeatCount="indefinite"/></circle>')
+    # barrido de norte a sur, recortado por el mapa (SMIL, para que el recorte funcione)
+    out.append(f'<g clip-path="url(#pmap)"><g>'
+               f'<rect x="{mx - 2}" y="-34" width="{ntos(mw + 4)}" height="34" fill="url(#ptrail)"/>'
+               f'<line x1="{mx - 2}" y1="0" x2="{ntos(mx + mw + 2)}" y2="0" stroke="{P["gold"]}" stroke-width="2"/>'
+               f'<animateTransform attributeName="transform" type="translate" values="0 {my};0 {my + mh + 2}" '
+               f'dur="{cycle}s" repeatCount="indefinite"/></g></g>')
+    cap, _ = mono_label("~1.120 puntos en el mapa", 12.5, mx + mw / 2, my + mh + 20, P, anchor="middle")
+    out.append(cap)
 
     link, wl = text("med", "preciodeldolar.com.co ↗", 15, 530, 257, P["cel"], anchor="end")
     c, _ = chips(30, 238, ["Next.js", "PostgreSQL", "Puppeteer"], P, maxx=530 - wl - 16)
@@ -457,40 +537,68 @@ def blades(r, color, n=7):
     return "".join(out)
 
 
-def gpu(x, y, w, h, P, durs):
-    out = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" fill="{P["inner"]}" '
+def gpu(x, y, w, h, P, durs, label=None):
+    out = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8" fill="{P["inner"]}" '
            f'stroke="{P["cardline"]}" stroke-width="1.5"/>']
     for i, fx in enumerate([x + w * 0.3, x + w * 0.7]):
-        fy, r = y + h / 2, h * 0.36
+        fy, r = y + h / 2, h * 0.34
         out.append(f'<circle cx="{ntos(fx)}" cy="{ntos(fy)}" r="{ntos(r + 2)}" fill="none" '
                    f'stroke="{P["cardline"]}" stroke-width="1.5"/>')
         out.append(f'<g transform="translate({ntos(fx)} {ntos(fy)})"><g class="spin" '
                    f'style="animation-duration:{durs[i]}s">{blades(r, P["cel"])}</g></g>')
         out.append(f'<circle cx="{ntos(fx)}" cy="{ntos(fy)}" r="{ntos(r * 0.24)}" fill="{P["muted"]}"/>')
-    for k in range(9):
-        out.append(f'<rect x="{ntos(x + w * 0.18 + k * 9)}" y="{y + h}" width="5" height="5" '
-                   f'fill="{P["gold"]}" fill-opacity="0.85"/>')
+    if label:
+        t, _ = mono_label(label, 10.5, x + w - 8, y + h / 2 + 4, P, anchor="end")
+        out.append(t)
     return "".join(out)
 
 
 def card_llm(P):
-    defs, frame = card_frame(CW, CH, P, P["cel"], "l", gx=0.95, gy=0.05)
+    """LLM on-premise: documentos y consultas se procesan adentro de la oficina."""
+    defs, frame = card_frame(CW, CH, P, P["cel"], "l")
     out = [frame, card_head(P, "LLM on-premise", "Para el archivo de escrituras de una escribanía")]
     out.append(badge(530, 33, "en producción", P["green"], P, pulse=True))
-    s1, _, _ = stat(30, 156, "27B", "parámetros · Qwen 3.6 · 2× RTX 3090", P)
+    s1, _, _ = stat(30, 140, "27B", "parámetros · Qwen 3.6", P, size=42)
     out.append(s1)
-    out.append(icon_lock(37, 205, P["muted"]))
-    t, _ = text("reg", "los documentos no salen de la oficina", 15, 52, 211, P["muted"])
-    out.append(t)
-    out.append(gpu(338, 104, 192, 50, P, (0.9, 1.15)))
-    out.append(gpu(338, 168, 192, 50, P, (1.05, 0.8)))
+    s2, _, _ = stat(30, 202, "2", "RTX 3090 en paralelo (vLLM)", P, unit="GPUs", size=42)
+    out.append(s2)
+
+    # límite de la oficina: línea punteada con candado
+    bx, by, bw, bh = 316, 102, 222, 124
+    out.append(f'<rect x="{bx}" y="{by}" width="{bw}" height="{bh}" rx="14" fill="{P["inner"]}" fill-opacity="0.5" '
+               f'stroke="{P["cel"]}" stroke-opacity="0.6" stroke-width="1.5" stroke-dasharray="5 5"/>')
+    lab, lw = mono_label("oficina", 12.5, bx + 34, by + 4.5, P, color=P["cel"])
+    out.append(f'<rect x="{bx + 12}" y="{by - 9}" width="{ntos(lw + 32)}" height="18" rx="9" fill="{P["card"]}"/>')
+    out.append(icon_lock(bx + 24, by, P["cel"], k=0.85))
+    out.append(lab)
+
+    # adentro: documentos y consultas entran al servidor con las dos GPUs; nada sale
+    gx, gy, gw, gh = 430, 116, 96, 42
+    out.append(gpu(gx, gy, gw, gh, P, (0.9, 1.15)))
+    out.append(gpu(gx, gy + 52, gw, gh, P, (1.05, 0.8)))
+    out.append(icon_docs(352, 136, P["text2"], P["card"]))
+    out.append(icon_chat(352, 186, P["text2"], P["card"]))
+    p1 = f"M378 136 C400 136 404 {gy + gh / 2} 424 {gy + gh / 2}"
+    p2 = f"M378 186 C400 186 404 {gy + 52 + gh / 2} 424 {gy + 52 + gh / 2}"
+    p2r = f"M424 {gy + 52 + gh / 2} C404 {gy + 52 + gh / 2} 400 186 378 186"
+    out.append(f'<path d="{p1}" fill="none" stroke="{P["cardline"]}" stroke-width="1.6"/>'
+               f'<path d="{p2}" fill="none" stroke="{P["cardline"]}" stroke-width="1.6"/>')
+    for k in range(2):
+        out.append(packet(p1, P["gold"], 2.2, k * 1.1, r=3.4))          # ingesta de escrituras
+    out.append(packet_window(p2, P["cel"], 3.0, 0.05, 0.4, r=3.4))     # pregunta
+    out.append(packet_window(p2r, P["green"], 3.0, 0.55, 0.9, r=3.4))  # respuesta
+    cap1, _ = mono_label("escrituras", 11, 352, 166, P, anchor="middle")
+    cap2, _ = mono_label("consultas", 11, 352, 214, P, anchor="middle")
+    out += [cap1, cap2]
+
     c, _ = chips(30, 238, ["vLLM", "Qdrant", "PostgreSQL", "RAG"], P, maxx=530)
     out.append(c)
-    return svg(CW, CH, "".join(out), "LLM on-premise: Qwen 3.6 27B en dos RTX 3090", defs)
+    return svg(CW, CH, "".join(out), "LLM on-premise: Qwen 3.6 27B en dos RTX 3090, dentro de la oficina", defs)
 
 
 def card_research(P):
-    defs, frame = card_frame(CW, CH, P, P["cel"], "r", gx=0.95, gy=0.05)
+    """Investigación: qué parte del razonamiento de T1 viaja a T2 y qué cuesta."""
+    defs, frame = card_frame(CW, CH, P, P["cel"], "r")
     out = [frame, card_head(P, "Investigación", "¿Preservar o descartar el razonamiento de un LLM entre turnos?")]
     out.append(badge(530, 33, "paper en preparación", P["cel"], P))
     defs += (f'<pattern id="rstr" width="9" height="9" patternUnits="userSpaceOnUse" '
@@ -498,31 +606,42 @@ def card_research(P):
              f'<rect width="3.5" height="9" fill="{P["cel"]}" fill-opacity="0.75"/></pattern>')
 
     def bubble(x, label):
-        t, _ = text("monob", label, 17, x + 28, 150, P["text"], anchor="middle")
-        return (f'<rect x="{x}" y="122" width="56" height="42" rx="12" fill="{P["chip"]}" '
+        t, _ = text("monob", label, 17, x + 28, 155, P["text"], anchor="middle")
+        return (f'<rect x="{x}" y="127" width="56" height="42" rx="12" fill="{P["chip"]}" '
                 f'stroke="{P["chipline"]}" stroke-width="1.5"/>' + t)
 
+    cap, _ = mono_label("razonamiento de T1 que viaja a T2", 12.5, 102, 118, P)
+    out.append(cap)
     out.append(bubble(30, "T1"))
-    tx, tw, ty, th = 102, 330, 133, 20
+    tx, tw, ty, th = 102, 330, 138, 20
+    cycle = 7.5
     out.append(f'<rect x="{tx}" y="{ty}" width="{tw}" height="{th}" rx="10" fill="{P["inner"]}" '
                f'stroke="{P["cardline"]}" stroke-dasharray="4 4"/>')
     out.append(f'<rect x="{tx}" y="{ty}" width="{tw}" height="{th}" rx="10" fill="url(#rstr)">'
                f'<animate attributeName="width" values="{tw};{tw};128;128;14;14;{tw}" '
-               f'keyTimes="0;0.30;0.36;0.62;0.68;0.93;1" dur="7.5s" repeatCount="indefinite"/></rect>')
+               f'keyTimes="0;0.30;0.36;0.62;0.68;0.93;1" dur="{cycle}s" repeatCount="indefinite"/></rect>')
     out.append(arrow_right(tx + tw + 8, 470, ty + th / 2, P["muted"]))
     out.append(bubble(474, "T2"))
-    states = [("preservar: todo el razonamiento", "0;0.30;0.33;0.95;0.98;1", "1;1;0;0;1;1"),
-              ("comprimir: un resumen", "0;0.33;0.36;0.62;0.65;1", "0;0;1;1;0;0"),
-              ("descartar: nada", "0;0.65;0.68;0.93;0.96;1", "0;0;1;1;0;0")]
+    # tokens que cuesta: barra chica sincronizada
+    tk, _ = mono_label("costo en tokens", 12.5, 102, 206, P)
+    out.append(tk)
+    kx, kw = 220, 150
+    out.append(f'<rect x="{kx}" y="196" width="{kw}" height="10" rx="5" fill="{P["inner"]}" stroke="{P["cardline"]}"/>')
+    out.append(f'<rect x="{kx}" y="196" width="{kw}" height="10" rx="5" fill="{P["gold"]}" fill-opacity="0.85">'
+               f'<animate attributeName="width" values="{kw};{kw};58;58;6;6;{kw}" '
+               f'keyTimes="0;0.30;0.36;0.62;0.68;0.93;1" dur="{cycle}s" repeatCount="indefinite"/></rect>')
+    states = [("preservar · viaja todo", "0;0.30;0.33;0.95;0.98;1", "1;1;0;0;1;1"),
+              ("comprimir · viaja un resumen", "0;0.33;0.36;0.62;0.65;1", "0;0;1;1;0;0"),
+              ("descartar · solo la respuesta", "0;0.65;0.68;0.93;0.96;1", "0;0;1;1;0;0")]
     for i, (lab, kt, vals) in enumerate(states):
-        d, _ = F["mono"].d(lab, 15, tx, 190)
+        d, _ = F["mono"].d(lab, 14.5, 102, 184)
         out.append(f'<path d="{d}" fill="{P["text2"]}" opacity="{1 if i == 0 else 0}">'
-                   f'<animate attributeName="opacity" values="{vals}" keyTimes="{kt}" dur="7.5s" '
+                   f'<animate attributeName="opacity" values="{vals}" keyTimes="{kt}" dur="{cycle}s" '
                    f'repeatCount="indefinite"/></path>')
     link, wl = text("med", "CoT-Compress ↗", 15, 530, 257, P["cel"], anchor="end")
-    t, _ = text("mono", "con J. Wisznia y L. Del Corro (UdeSA)", 14, 30, 257, P["muted"])
+    t, _ = mono_label("con J. Wisznia y L. Del Corro (UdeSA)", 14, 30, 257, P)
     out += [t, link]
-    return svg(CW, CH, "".join(out), "Investigación: razonamiento de LLMs, paper en preparación", defs)
+    return svg(CW, CH, "".join(out), "Investigación: razonamiento de LLMs entre turnos, paper en preparación", defs)
 
 
 def pc_icon(cx, cy, P):
@@ -535,7 +654,8 @@ def pc_icon(cx, cy, P):
 
 
 def card_infra(P):
-    defs, frame = card_frame(CW, CH, P, P["green"], "i", gx=0.95, gy=0.05)
+    """Infraestructura: los equipos reportan al RMM; una alerta se detecta y se resuelve."""
+    defs, frame = card_frame(CW, CH, P, P["green"], "i")
     out = [frame, card_head(P, "Infraestructura", "Escribanías y estudios de Buenos Aires")]
     out.append(badge(530, 33, "desde 2020", P["text2"], P))
     items = ["Soporte remoto de equipos", "Redes, backups y acceso remoto", "Renovación de hardware"]
@@ -544,14 +664,34 @@ def card_infra(P):
         out.append(icon_check(38, y - 5, P["green"]))
         t, _ = text("reg", it, 16, 56, y, P["text2"])
         out.append(t)
-    sx, sy = 488, 160
-    pcs = [(374, 110 + k * 33) for k in range(4)]
+
+    sx, sy = 492, 160
+    pcs = [(372, 108 + k * 34) for k in range(4)]
+    paths_in, paths_out = [], []
     for px, py in pcs:
-        out.append(f'<path d="M{sx - 17} {sy}C{sx - 60} {sy} {px + 50} {py} {px + 15} {py}" fill="none" '
-                   f'stroke="{P["cardline"]}" stroke-width="1.6"/>')
-    for k, (px, py) in enumerate(pcs):
-        out.append(packet(f"M{sx - 17} {sy}C{sx - 60} {sy} {px + 50} {py} {px + 15} {py}", P["green"], 1.6,
-                          k * 0.4, r=3.2))
+        a, b = f"{px + 15} {py}", f"{sx - 17} {sy}"
+        c1, c2 = f"{px + 50} {py}", f"{sx - 60} {sy}"
+        paths_in.append(f"M{a} C{c1} {c2} {b}")
+        paths_out.append(f"M{b} C{c2} {c1} {a}")
+        out.append(f'<path d="M{a} C{c1} {c2} {b}" fill="none" stroke="{P["cardline"]}" stroke-width="1.6"/>')
+    cycle = 6.0
+    # latidos: cada equipo reporta al servidor
+    for k, p in enumerate(paths_in):
+        out.append(packet(p, P["green"], 2.4, k * 0.6, r=2.6))
+    # historia: el equipo 2 avisa un problema, el servidor responde, queda resuelto
+    ax, ay = pcs[1]
+    alert = (f'<circle cx="{ax + 14}" cy="{ay - 12}" r="7.5" fill="{P["gold"]}"/>'
+             f'<rect x="{ax + 13.1}" y="{ay - 16.5}" width="1.8" height="5.6" rx="0.9" fill="{P["card"]}"/>'
+             f'<circle cx="{ax + 14}" cy="{ay - 8.6}" r="1.1" fill="{P["card"]}"/>')
+    out.append(show_window(alert, cycle, 0.14, 0.58))
+    out.append(packet_window(paths_in[1], P["gold"], cycle, 0.2, 0.33, r=4))
+    flash = f'<rect x="{sx - 17}" y="{sy - 26}" width="34" height="52" rx="6" fill="{P["gold"]}" fill-opacity="0.25"/>'
+    out.append(show_window(flash, cycle, 0.33, 0.45))
+    out.append(packet_window(paths_out[1], P["green"], cycle, 0.45, 0.58, r=4))
+    ok = (f'<circle cx="{ax + 14}" cy="{ay - 12}" r="7.5" fill="{P["green"]}"/>'
+          f'<path d="M{ax + 10.4} {ay - 12}l2.4 2.6l4.8-5.2" fill="none" stroke="{P["card"]}" stroke-width="2" '
+          f'stroke-linecap="round" stroke-linejoin="round"/>')
+    out.append(show_window(ok, cycle, 0.58, 0.92))
     for px, py in pcs:
         out.append(pc_icon(px, py, P))
     out.append(f'<rect x="{sx - 17}" y="{sy - 26}" width="34" height="52" rx="6" fill="{P["inner"]}" '
@@ -562,6 +702,8 @@ def card_infra(P):
                    f'stroke-width="1.8" stroke-linecap="round"/>'
                    f'<circle class="led" style="animation-delay:{k * 0.4:.1f}s" cx="{sx + 9}" cy="{y}" r="2.2" '
                    f'fill="{P["green"]}"/>')
+    cap, _ = mono_label("RMM", 11, sx, sy + 40, P, anchor="middle")
+    out.append(cap)
     c, _ = chips(30, 238, ["Tactical RMM", "Windows", "Linux", "PowerShell"], P, maxx=530)
     out.append(c)
     return svg(CW, CH, "".join(out), "Infraestructura de escribanías y estudios desde 2020", defs)
@@ -587,28 +729,44 @@ def uni_frame(P, accent, uid, title, tag, desc):
 
 
 def uni_cot(P):
+    """CoT-Compress: el razonamiento del turno anterior vuelve comprimido como memoria."""
     defs, out = uni_frame(P, P["cel"], "uc", "CoT-Compress", "NLP · 2026",
                           "Chat local que comprime el razonamiento del modelo y lo reinyecta como memoria.")
     t, wb = text("disp", "6", 38, 28, 176, P["text"])
     t2, _ = text("reg", "estrategias de compresión", 15, 28 + wb + 10, 176, P["muted"])
     out += [t, t2]
-    # burbuja del usuario, burbuja "pensando" y memoria
-    out.append(f'<rect x="414" y="70" width="116" height="30" rx="15" fill="{P["chip"]}" stroke="{P["chipline"]}"/>'
-               f'<line x1="430" y1="85" x2="512" y2="85" stroke="{P["text2"]}" stroke-width="3" '
-               f'stroke-linecap="round" stroke-opacity="0.5"/>')
-    out.append(f'<rect x="356" y="112" width="124" height="34" rx="17" fill="{P["cel"]}" fill-opacity="0.14" '
+    defs += (f'<pattern id="ucstr" width="8" height="8" patternUnits="userSpaceOnUse" '
+             f'patternTransform="rotate(45)"><rect width="8" height="8" fill="{P["cel"]}" fill-opacity="0.16"/>'
+             f'<rect width="3" height="8" fill="{P["cel"]}" fill-opacity="0.6"/></pattern>')
+
+    def user_bubble(x, y, w):
+        return (f'<rect x="{x}" y="{y}" width="{w}" height="26" rx="13" fill="{P["chip"]}" stroke="{P["chipline"]}"/>'
+                f'<line x1="{x + 14}" y1="{y + 13}" x2="{x + w - 14}" y2="{y + 13}" stroke="{P["text2"]}" '
+                f'stroke-width="3" stroke-linecap="round" stroke-opacity="0.5"/>')
+
+    # turno 1: el usuario pregunta y el modelo razona (burbuja rayada, larga)
+    out.append(user_bubble(430, 62, 100))
+    out.append(f'<rect x="352" y="98" width="150" height="30" rx="15" fill="{P["cel"]}" fill-opacity="0.14" '
                f'stroke="{P["cel"]}" stroke-opacity="0.55"/>')
     for k in range(3):
-        out.append(f'<circle class="bob" style="animation-delay:{k * 0.15:.2f}s" cx="{402 + k * 16}" cy="129" '
-                   f'r="4.2" fill="{P["cel"]}"/>')
-    out.append(arrow_down(418, 150, 168, P["muted"]))
-    mw = F["mono"].width("memoria", 14) + 22
-    mem, _ = chip(418 - mw / 2, 170, "memoria", P, size=14, h=26)
+        out.append(f'<circle class="bob" style="animation-delay:{k * 0.15:.2f}s" cx="{372 + k * 15}" cy="113" '
+                   f'r="3.8" fill="{P["cel"]}"/>')
+    out.append(f'<rect x="418" y="108" width="72" height="10" rx="5" fill="url(#ucstr)"/>')
+    # compresión: el razonamiento baja y entra como memoria en el turno 2
+    conn = "M400 129 C400 142 382 138 382 152"
+    out.append(f'<path d="{conn}" fill="none" stroke="{P["muted"]}" stroke-width="1.6" stroke-dasharray="3 3"/>')
+    out.append(packet(conn, P["cel"], 2.4, 0, r=3.4))
+    mem, mw = chip(352, 152, "memoria", P, size=13, h=26, pad=10)
     out.append(mem)
+    out.append(user_bubble(352 + mw + 8, 152, 530 - (352 + mw + 8)))
+    tl1, _ = mono_label("T1", 11, 420, 79, P, anchor="end")
+    tl2, _ = mono_label("T2", 11, 530, 146, P, anchor="end")
+    out += [tl1, tl2]
     return svg(UW, UH, "".join(out), "CoT-Compress: compresión del razonamiento entre turnos", defs)
 
 
 def uni_derma(P):
+    """DermaVision: una lupa recorre las lesiones; 7 clases, 10.015 imágenes."""
     defs, out = uni_frame(P, P["gold"], "ud", "DermaVision", "Visión artificial · 2026",
                           "Clasifica 7 tipos de lesiones de piel sobre 10.015 imágenes dermatoscópicas.")
     t, wb = text("disp", "0,729", 38, 28, 176, P["text"])
@@ -620,15 +778,18 @@ def uni_derma(P):
         x, y, r = 372 + rnd.random() * 150, 76 + rnd.random() * 100, 7 + rnd.random() * 9
         if all(math.hypot(x - a, y - b) > r + c + 3 for a, b, c in cells):
             cells.append((x, y, r))
+    cols = [P["gold"], P["cel"], P["muted"], P["green"], P["red"], P["text2"], P["cel"]]
     for i, (x, y, r) in enumerate(cells):
-        col = [P["gold"], P["cel"], P["muted"]][i % 3]
+        col = cols[i % 7]
         out.append(f'<circle cx="{ntos(x)}" cy="{ntos(y)}" r="{ntos(r)}" fill="{col}" fill-opacity="0.18" '
                    f'stroke="{col}" stroke-opacity="0.55"/>'
                    f'<circle cx="{ntos(x + r * 0.2)}" cy="{ntos(y - r * 0.15)}" r="{ntos(r * 0.32)}" '
                    f'fill="{col}" fill-opacity="0.55"/>')
-    lens = (f'<g transform="translate(420 110)"><circle r="25" fill="{P["cel"]}" fill-opacity="0.10" stroke="{P["text"]}" stroke-width="3"/>'
-            f'<line x1="18" y1="18" x2="34" y2="34" stroke="{P["text"]}" stroke-width="5" stroke-linecap="round"/>'
-            f'<animateMotion path="M0 0 C40 -40 100 -20 80 30 C60 70 -20 60 0 0Z" dur="7s" '
+    # la lupa se queda dentro de la zona de células (sin pisar la etiqueta ni salirse de la tarjeta)
+    lens = (f'<g transform="translate(418 112)"><circle r="23" fill="{P["cel"]}" fill-opacity="0.10" '
+            f'stroke="{P["text"]}" stroke-width="3"/>'
+            f'<line x1="17" y1="17" x2="30" y2="30" stroke="{P["text"]}" stroke-width="5" stroke-linecap="round"/>'
+            f'<animateMotion path="M0 0 C30 -22 72 -10 68 22 C64 48 20 56 0 32 C-14 16 -12 8 0 0Z" dur="7s" '
             f'repeatCount="indefinite"/></g>')
     out.append(lens)
     return svg(UW, UH, "".join(out), "DermaVision: clasificación de lesiones de piel", defs)
@@ -647,12 +808,13 @@ def wave_path(x0, width, mid, amp, period, noise=None, step=3):
 
 
 def uni_clearwave(P):
+    """ClearWave: la señal con ruido entra a la U-Net y sale limpia."""
     defs, out = uni_frame(P, P["cel"], "uw", "ClearWave", "Aprendizaje automático · 2025",
                           "Elimina el ruido de la voz con autoencoders y una U-Net.")
     c, _ = chips(28, 150, ["PESQ", "STOI", "LSD", "SDR"], P, size=14, h=26)
     out.append(c)
     x0, w = 352, 180
-    defs += f'<clipPath id="uwclip"><rect x="{x0}" y="56" width="{w}" height="140" rx="10"/></clipPath>'
+    defs += f'<clipPath id="uwclip"><rect x="{x0}" y="60" width="{w}" height="136" rx="10"/></clipPath>'
     rnd = random.Random(3)
     noise = [rnd.uniform(-11, 11) for _ in range(20)]  # período de 60 px con paso 3
     noisy = wave_path(x0, w + 60, 92, 9, 60, noise)
@@ -661,43 +823,48 @@ def uni_clearwave(P):
                f'stroke-width="2" stroke-linejoin="round"/></g>'
                f'<g class="flow" style="animation-duration:2.4s"><path d="{clean}" fill="none" stroke="{P["cel"]}" '
                f'stroke-width="2.6" stroke-linecap="round"/></g></g>')
-    out.append(arrow_down(x0 + w / 2, 112, 140, P["gold"]))
-    t, _ = text("mono", "U-Net", 13, x0 + w / 2 + 10, 131, P["gold"])
-    out.append(t)
+    out.append(arrow_down(x0 + w / 2, 114, 142, P["gold"]))
+    t, _ = mono_label("U-Net", 13, x0 + w / 2 + 10, 132, P, color=P["gold"])
+    l1, _ = mono_label("con ruido", 11, x0 + 2, 70, P)
+    l2, _ = mono_label("limpia", 11, x0 + 2, 194, P, color=P["cel"])
+    out += [t, l1, l2]
     return svg(UW, UH, "".join(out), "ClearWave: eliminación de ruido en voz", defs)
 
 
 def uni_pozos(P):
+    """Plataforma de pozos: curva de declinación con histórico y pronóstico."""
     defs, out = uni_frame(P, P["gold"], "up", "Plataforma de pozos", "Ing. de software · 2026",
                           "Pipeline de datos y API de pronóstico de producción de petróleo.")
     c, _ = chips(28, 150, ["Dagster", "dbt", "MLflow", "AWS"], P, size=14, h=26, maxx=340)
     out.append(c)
-    g = 186  # suelo
-    px, py = 456, 98  # pivote del balancín
-    out.append(f'<line x1="360" y1="{g}" x2="536" y2="{g}" stroke="{P["cardline"]}" stroke-width="2"/>')
-    # caballete
-    out.append(f'<path d="M436 {g}L{px} {py + 4}L476 {g}" fill="none" stroke="{P["text2"]}" stroke-width="3" '
-               f'stroke-linejoin="round"/>')
-    # boca de pozo y varilla
-    out.append(f'<rect x="384" y="{g - 12}" width="14" height="12" rx="2" fill="{P["text2"]}"/>'
-               f'<line x1="391" y1="{py + 18}" x2="391" y2="{g - 12}" stroke="{P["muted"]}" stroke-width="2"/>')
-    # manivela con contrapeso girando
-    out.append(f'<g transform="translate(508 160)"><g class="spin-slow" style="animation-duration:2.6s">'
-               f'<circle r="16" fill="none"/><rect x="-4" y="-16" width="8" height="32" rx="3" fill="{P["gold"]}"/>'
-               f'<circle r="5" fill="{P["text2"]}"/></g></g>')
-    out.append(f'<line x1="496" y1="{g}" x2="508" y2="160" stroke="{P["text2"]}" stroke-width="3"/>'
-               f'<line x1="520" y1="{g}" x2="508" y2="160" stroke="{P["text2"]}" stroke-width="3"/>')
-    # balancín con cabeza de caballo, cabecea sobre el pivote
-    beam = (f'<g><line x1="396" y1="{py}" x2="524" y2="{py}" stroke="{P["text"]}" stroke-width="6" '
-            f'stroke-linecap="round"/>'
-            f'<path d="M398 {py - 14}Q378 {py} 398 {py + 18}L404 {py + 18}Q392 {py} 404 {py - 14}Z" '
-            f'fill="{P["text"]}"/>'
-            f'<line x1="508" y1="{py}" x2="508" y2="146" stroke="{P["text2"]}" stroke-width="3"/>'
-            f'<circle cx="{px}" cy="{py}" r="5" fill="{P["gold"]}"/>'
-            f'<animateTransform attributeName="transform" type="rotate" '
-            f'values="-9 {px} {py};9 {px} {py};-9 {px} {py}" dur="2.6s" repeatCount="indefinite" '
-            f'calcMode="spline" keyTimes="0;0.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/></g>')
-    out.append(beam)
+    ax0, ax1, ay0, ay1 = 362, 530, 72, 176   # área del gráfico
+    split = 450
+
+    def curve(x):
+        return ay1 - 92 * math.exp(-(x - ax0) / 75)
+
+    hist = [(x, curve(x)) for x in range(ax0, split + 1, 4)]
+    fore = [(x, curve(x)) for x in range(split, ax1 + 1, 4)]
+    band = ([(x, y - (x - split) * 0.22) for x, y in fore] + [(x, y + (x - split) * 0.22) for x, y in reversed(fore)])
+    out.append(f'<line x1="{ax0}" y1="{ay0}" x2="{ax0}" y2="{ay1}" stroke="{P["cardline"]}" stroke-width="1.5"/>'
+               f'<line x1="{ax0}" y1="{ay1}" x2="{ax1}" y2="{ay1}" stroke="{P["cardline"]}" stroke-width="1.5"/>')
+    out.append(f'<polygon points="{" ".join(f"{ntos(x)},{ntos(y)}" for x, y in band)}" fill="{P["gold"]}" '
+               f'fill-opacity="0.16"/>')
+    dh = "M" + "L".join(f"{ntos(x)} {ntos(y)}" for x, y in hist)
+    df = "M" + "L".join(f"{ntos(x)} {ntos(y)}" for x, y in fore)
+    out.append(f'<path d="{dh}" fill="none" stroke="{P["cel"]}" stroke-width="2.4" stroke-linecap="round"/>')
+    out.append(f'<path d="{df}" fill="none" stroke="{P["gold"]}" stroke-width="2.4" stroke-linecap="round" '
+               f'stroke-dasharray="5 5"/>')
+    out.append(f'<line x1="{split}" y1="{ay0 + 6}" x2="{split}" y2="{ay1}" stroke="{P["muted"]}" '
+               f'stroke-width="1.2" stroke-dasharray="2 3"/>')
+    hoy, _ = mono_label("hoy", 11, split, ay0 + 2, P, anchor="middle")
+    pron, _ = mono_label("pronóstico", 11, split + 8, 118, P, color=P["gold"])
+    yl, _ = mono_label("producción", 10.5, ax0 - 6, ay0 + 4, P, anchor="end")
+    out += [hoy, pron]
+    # el punto recorre el histórico y sigue por el pronóstico
+    full = dh + "L" + "L".join(f"{ntos(x)} {ntos(y)}" for x, y in fore[1:])
+    out.append(f'<circle r="4.5" fill="{P["text"]}" stroke="{P["card"]}" stroke-width="2">'
+               f'<animateMotion path="{full}" dur="5s" repeatCount="indefinite" calcMode="linear"/></circle>')
     return svg(UW, UH, "".join(out), "Plataforma predictiva de producción de pozos", defs)
 
 
@@ -712,9 +879,8 @@ def footer(P):
     body = (f'<g><path d="{w1}" fill="none" stroke="url(#fg)" stroke-width="2.6" stroke-linecap="round"/>'
             f'<animateTransform attributeName="transform" type="translate" values="0 0;-120 0" dur="4s" '
             f'repeatCount="indefinite"/></g>'
-            f'<g opacity="0.45"><path d="{w2}" fill="none" stroke="url(#fg)" stroke-width="1.6" '
-            f'transform="translate(-60 0)"/>'
-            f'<animateTransform attributeName="transform" type="translate" values="0 0;-120 0" dur="6.5s" '
+            f'<g opacity="0.45"><path d="{w2}" fill="none" stroke="url(#fg)" stroke-width="1.6"/>'
+            f'<animateTransform attributeName="transform" type="translate" values="-60 0;-180 0" dur="6.5s" '
             f'repeatCount="indefinite"/></g>')
     return svg(W, H, body, "Decoración", defs)
 
