@@ -35,9 +35,8 @@ TOKENS = {
         "muted":   (46, 0.012, 255),
         "rule":    (90, 0.006, 255),   # rieles de la grilla
         "hair":    (80, 0.008, 255),   # filetes entre celdas
-        "faint":   (93, 0.008, 255),   # barras secundarias, numeral de fondo
         "signal":  (45, 0.190, 264),   # ultramar: la única tinta
-        "on-plate": (99, 0.003, 255),
+        "on-plate": (98, 0.005, 255),
         "plate-rule": (53, 0.150, 264),
     },
     "dark": {
@@ -45,9 +44,8 @@ TOKENS = {
         "muted":   (72, 0.012, 255),
         "rule":    (26, 0.012, 255),
         "hair":    (36, 0.012, 255),
-        "faint":   (30, 0.014, 255),
         "signal":  (68, 0.150, 264),
-        "on-plate": (99, 0.003, 255),
+        "on-plate": (98, 0.005, 255),
         "plate-rule": (53, 0.150, 264),
     },
 }
@@ -175,9 +173,6 @@ def masthead(P):
     b.append(t)
     t, _ = label("CABA · Argentina", 21, W, 46, P["muted"], anchor="end")
     b.append(t)
-    # cuarto de disco en la celda superior derecha
-    cx, cy, r = W, 74, 168
-    b.append(f'<path d="M{cx} {cy}V{cy + r}A{r} {r} 0 0 1 {cx - r} {cy}Z" fill="{P["signal"]}"/>')
     t, _ = display("santiago", 152, -6, 222, P["ink"])
     b.append(t)
     t, w2 = display("groba alonso", 152, -6, 360, P["ink"])
@@ -224,7 +219,7 @@ def fig_llm(P):
     t, _ = label("Segundos por respuesta", 19, 0, 44, P["muted"])
     b.append(t)
     s = 36  # px por segundo
-    for i, (who, sec, num, fill) in enumerate((("antes", 10, "~10 s", P["faint"]), ("ahora", 3, "~3 s", P["signal"]))):
+    for i, (who, sec, num, fill) in enumerate((("antes", 10, "~10 s", P["muted"]), ("ahora", 3, "~3 s", P["signal"]))):
         y = 80 + i * 74
         b.append(rect(0, y, sec * s, 46, fill))
         t, _ = display(num, 46, sec * s + 14, y + 40, P["ink"], tnum=True)

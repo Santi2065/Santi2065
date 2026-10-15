@@ -13,12 +13,14 @@ Soy **Santi**. Estudio Ingeniería en Inteligencia Artificial en la UdeSA y desd
 
 <a href="https://preciodeldolar.com.co"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/proof-pdc-dark.svg"><img align="right" width="46%" alt="1.182 casas de cambio en 62 ciudades; las cinco con más casas: Bogotá 226, Ipiales 207, Medellín 150, Cartagena 101, Cúcuta 97" src="assets/proof-pdc-light.svg"></picture></a>
 
-Comparador de tasas de cambio en Colombia, en producción en [preciodeldolar.com.co](https://preciodeldolar.com.co). Compara tasas de compra y venta y lista 1.182 casas de cambio en 62 ciudades.
+Comparador de tasas de cambio en Colombia, en producción. Compara tasas de compra y venta y lista 1.182 casas de cambio en 62 ciudades.
 
 - Scraper con 80 fuentes y 13 parsers
 - Panel para dueños de casas de cambio, con planes pagos
 
 `Next.js` · `PostgreSQL` · `Puppeteer`
+
+[preciodeldolar.com.co](https://preciodeldolar.com.co)
 
 <br clear="right">
 
