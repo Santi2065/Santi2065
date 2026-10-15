@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Hallmark · genre: editorial · macrostructure: Feature Stack (static, por capacidades) · theme: Grid (ultramarine)
+# Hallmark · genre: editorial · macrostructure: Feature Stack (por capacidades) · motion: grow · load · pop · ticker · theme: Grid (ultramarine)
 #   · tone: austere/technical · enrichment: Tier-B hand-built SVG (kit marks + real data)
 #   · nav: none (GitHub chrome) · footer: Ft2 inline single line · motion: none
 """Genera los SVG del README de perfil (versión clara y oscura de cada figura).
@@ -161,9 +161,29 @@ def rails(W, H, cols, color, y0=0):
     return "".join(vline(min(max(i * step, 0.5), W - 0.5), y0, H, color) for i in range(cols + 1))
 
 
-def svg(W, H, body, title):
+EASE_OUT = "cubic-bezier(.16,1,.3,1)"
+MOTION = (f".grow{{transform-box:fill-box;transform-origin:0 50%;animation:grow .9s {EASE_OUT} both}}"
+          "@keyframes grow{from{transform:scaleX(0)}}"
+          f".pop{{transform-box:fill-box;transform-origin:50% 50%;animation:pop .45s {EASE_OUT} both}}"
+          "@keyframes pop{from{opacity:0;transform:scale(.3)}}"
+          ".load-a,.load-b{transform-box:fill-box;transform-origin:0 50%;animation:4.5s linear infinite}"
+          ".load-a{animation-name:loadA}.load-b{animation-name:loadB}"
+          # tiempo real a escala: ~10 s y ~3 s se llenan en 3 s y 0,9 s
+          "@keyframes loadA{0%{transform:scaleX(0)}66.7%,100%{transform:scaleX(1)}}"
+          "@keyframes loadB{0%{transform:scaleX(0)}20%,100%{transform:scaleX(1)}}"
+          "@media (prefers-reduced-motion:reduce){*{animation:none!important}}")
+
+
+def svg(W, H, body, title, css=""):
+    style = f"<style>{MOTION}{css}</style>" if "class=" in body else ""
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
-            f'role="img" aria-label="{title}"><title>{title}</title>{body}</svg>\n')
+            f'role="img" aria-label="{title}"><title>{title}</title>{style}{body}</svg>\n')
+
+
+def anim(x, y, w, h, fill, cls, delay=0.0):
+    d = f' style="animation-delay:{delay:.2f}s"' if delay else ""
+    return (f'<rect class="{cls}"{d} x="{ntos(x)}" y="{ntos(y)}" width="{ntos(w)}" '
+            f'height="{ntos(h)}" fill="{fill}"/>')
 
 
 # ---------------------------------------------------------------- cabecera
@@ -216,7 +236,7 @@ def p_pdc(P):
         t, _ = text(city, 24, 0, y + 9, P["ink"], 500)
         o.append(t)
         w = 290 * n / cities[0][1]
-        o.append(rect(190, y - 11, w, 22, P["signal"] if i == 0 else P["ink"]))
+        o.append(anim(190, y - 11, w, 22, P["signal"] if i == 0 else P["ink"], "grow", 0.15 + i * 0.08))
         t, _ = text(str(n), 24, 190 + w + 12, y + 9, P["muted"], 500, tnum=True)
         o.append(t)
     return poster(P, "En producción · Colombia", "preciodeldolarco", "".join(o), "1.182",
@@ -229,7 +249,8 @@ def p_llm(P):
     o = []
     for i, (who, sec, num, fill) in enumerate((("antes", 10, "~10 s", P["muted"]), ("ahora", 3, "~3 s", P["signal"]))):
         y = 168 + i * 112
-        o.append(rect(0, y, sec * 36, 52, fill))
+        o.append(rect(0, y, sec * 36, 52, P["hair"]))
+        o.append(anim(0, y, sec * 36, 52, fill, "load-a" if i == 0 else "load-b"))
         t, _ = display(num, 52, sec * 36 + 16, y + 46, P["ink"], tnum=True)
         o.append(t)
         t, _ = label(f"{who} · segundos por respuesta", 16, 0, y + 80, P["muted"])
@@ -249,7 +270,7 @@ def p_cot(P):
         o.append(t)
         t, _ = text(note, 19, 0, y + 28, P["muted"], 400)
         o.append(t)
-        o.append(rect(PW - 260, y - 30, w, 30, fill))
+        o.append(anim(PW - 260, y - 30, w, 30, fill, "grow", 0.15 + i * 0.1))
     return poster(P, "Investigación · UdeSA", "cot-compress", "".join(o), "6",
                   "estrategias para el razonamiento entre turnos",
                   "CoT-Compress: preservar, comprimir o descartar el razonamiento de un LLM entre turnos; 6 estrategias de compresión")
@@ -276,89 +297,33 @@ def p_infra(P):
                   "Infraestructura de escribanías y pymes de CABA desde 2020: soporte, redes, backups, hardware y monitoreo")
 
 
-def p_hex(P):
-    o = []
-    r = 19
-    dx, dy = r * math.sqrt(3), r * 1.5
-    n = 7
-    chain = {(0, 3), (1, 3), (2, 2), (3, 2), (4, 3), (5, 3), (6, 2)}  # esquema
-    for row in range(n):
-        for col in range(n):
-            cx = 70 + col * dx + row * dx / 2
-            cy = 190 + row * dy
-            pts = " ".join(f"{ntos(cx + r * math.cos(math.radians(60 * k + 30)))},"
-                           f"{ntos(cy + r * math.sin(math.radians(60 * k + 30)))}" for k in range(6))
-            filled = (col, row) in chain
-            o.append(f'<polygon points="{pts}" fill="{P["signal"] if filled else "none"}" '
-                     f'stroke="{P["signal"] if filled else P["hair"]}" stroke-width="1.5"/>')
-    t, _ = label("esquema · cadena de borde a borde", 15, 0, 452, P["muted"])
-    o.append(t)
-    return poster(P, "Fundamentos de IA · 2025", "agente de hex", "".join(o), "18/18",
-                  "partidas ganadas a los agentes base",
-                  "Agente de Hex con búsqueda alfa-beta: 18 de 18 partidas ganadas a los agentes base")
+# ---------------------------------------------------------------- cinta de herramientas
+
+TOOLS = ["Python", "TypeScript", "C", "C++", "Java", "PyTorch", "vLLM", "llama.cpp", "Ollama", "Qdrant",
+         "MLflow", "PostgreSQL", "dbt", "Dagster", "Next.js", "React", "FastAPI", "Docker", "Linux", "AWS",
+         "nginx", "Prometheus", "Grafana", "GitHub Actions", "español", "inglés", "francés (básico)"]
 
 
-def p_arm(P):
-    o = []
-    cw, y, h = PW / 32, 250, 70
-    for i in range(32):
-        bit = 31 - i
-        o.append(rect(i * cw + 1, y, cw - 2, h, P["signal"] if bit >= 21 else P["hair"]))
-    for bit, anchor in ((31, "start"), (21, "end"), (0, "end")):
-        x = (31 - bit) * cw + (0 if anchor == "start" else cw)
-        t, _ = text(str(bit), 20, x, y - 14, P["muted"], 500, anchor=anchor, tnum=True)
-        o.append(t)
-    t, _ = label("instrucción A64 de 32 bits", 16, 0, y + h + 40, P["muted"])
-    o.append(t)
-    t, _ = label("bits 31–21: clave de decodificación", 16, 0, y + h + 68, P["signal"])
-    o.append(t)
-    return poster(P, "Arquitectura · 2025", "simulador armv8", "".join(o), "11/11",
-                  "programas iguales a la referencia",
-                  "Simulador ARMv8 en C: 11 de 11 programas idénticos al simulador de referencia",
-                  name_size=56)
+def ticker(P):
+    W, H, size, gap, sq = 1200, 76, 28, 34, 9
+    items, x = [], 0.0
+    for name in TOOLS:
+        t, w = text(name, size, x, 48, P["ink"], 500)
+        items.append(t)
+        x += w + gap
+        items.append(rect(x - gap / 2 - sq / 2, 48 - 10 - sq / 2, sq, sq, P["signal"]))
+    L = x
+    copy = "".join(items)
+    body = (f'<clipPath id="band"><rect width="{W}" height="{H}"/></clipPath>'
+            + hline(0, W, 1, P["ink"], 2) + hline(0, W, H - 1, P["rule"], 2)
+            + f'<g clip-path="url(#band)"><g class="tick">{copy}'
+            f'<g transform="translate({ntos(L)} 0)">{copy}</g></g></g>')
+    css = (f".tick{{animation:tick {L / 28:.0f}s linear infinite}}"
+           f"@keyframes tick{{to{{transform:translateX(-{ntos(L)}px)}}}}")
+    return svg(W, H, body, "Herramientas e idiomas: " + ", ".join(TOOLS), css)
 
 
-def p_v6(P):
-    o = []
-    cw, y = 70, 190
-    t, _ = label("inodo · i_addr[8]", 16, 0, y - 16, P["muted"])
-    o.append(t)
-    for i in range(8):
-        x = i * (cw + 4)
-        o.append(rect(x, y, cw, 54, P["signal"] if i == 7 else P["ink"]))
-    for i in range(8):  # cada dirección apunta a un bloque de 256 direcciones
-        x = i * (cw + 4) + cw / 2
-        o.append(vline(x, y + 54, y + 96, P["hair"], 2))
-        for k in range(3):
-            o.append(rect(i * (cw + 4) + k * 24, y + 100, 20, 20, P["hair"]))
-    t, _ = label("7 indirectos + 1 doble indirecto", 16, 0, y + 170, P["muted"])
-    o.append(t)
-    return poster(P, "Sistemas operativos · 2025", "unix v6 fs", "".join(o), "12/12",
-                  "pruebas idénticas a la referencia",
-                  "Lector del file system de Unix V6 en C: salida idéntica a la de referencia en 12 de 12 pruebas")
-
-
-def tools(P):
-    W, H = 1200, 400
-    b = [rails(W, H, 12, P["rule"]), hline(0, W, 1, P["ink"], 2), rect(0, 0, 200, 4, P["signal"])]
-    rows = (("Lenguajes", "Python · TypeScript · C · C++ · Java"),
-            ("IA y ML", "PyTorch · vLLM · llama.cpp · Ollama · Qdrant · MLflow"),
-            ("Datos", "PostgreSQL · dbt · Dagster"),
-            ("Web", "Next.js · React · FastAPI"),
-            ("Infra", "Docker · Linux · AWS · nginx · Prometheus · Grafana · GitHub Actions"),
-            ("Idiomas", "español · inglés · francés (básico)"))
-    for i, (cat, items) in enumerate(rows):
-        y = 70 + i * 60
-        t, _ = label(cat, 17, 6, y, P["muted"])
-        b.append(t)
-        t, _ = text(items, 28, 200, y + 2, P["ink"], 500)
-        b.append(t)
-        b.append(hline(0, W, y + 24, P["rule"]))
-    return svg(W, H, "".join(b), "Herramientas: " + "; ".join(f"{c}: {it}" for c, it in rows))
-
-
-POSTERS = {"pdc": p_pdc, "infra": p_infra, "llm": p_llm, "cot": p_cot,
-           "arm": p_arm, "v6": p_v6, "hex": p_hex}
+POSTERS = {"pdc": p_pdc, "infra": p_infra, "llm": p_llm, "cot": p_cot}
 
 
 # ---------------------------------------------------------------- cabeceras de capacidad
@@ -372,33 +337,39 @@ CAPACIDADES = {
 
 def head(P, n):
     """Título de una capacidad; el número es un objeto recortado, no un rótulo."""
-    W, H = 1200, 270
+    W, H = 1200, 220
     b = [rails(W, H, 12, P["rule"]), hline(0, W, 1, P["ink"], 2)]
-    t, _ = display(str(n), 420, W + 14, H + 96, P["numeral"], anchor="end", tnum=True)
+    t, _ = display(str(n), 360, W + 12, H + 84, P["numeral"], anchor="end", tnum=True)
     b.append(t)
     l1, l2 = CAPACIDADES[n]
-    t, _ = display(l1, 92, -5, 118, P["ink"])
+    t, _ = display(l1, 76, -4, 100, P["ink"])
     b.append(t)
-    t, w2 = display(l2, 92, -5, 220, P["ink"])
+    t, w2 = display(l2, 76, -4, 186, P["ink"])
     b.append(t)
-    sq = 0.24 * 92
-    b.append(rect(-5 + w2 + 8, 220 - sq, sq, sq, P["signal"]))
+    sq = 0.24 * 76
+    b.append(rect(-4 + w2 + 7, 186 - sq, sq, sq, P["signal"]))
     return svg(W, H, "".join(b), f"{l1} {l2}")
 
 
 # ---------------------------------------------------------------- la placa
 
 def plate(P, dates):
-    W, H = 1200, 330
+    W, H = 1200, 380
     b = [rect(0, 0, W, H, P["plate"]), rails(W, H, 12, P["plate-rule"])]
-    t, _ = display("22", 300, -14, 262, P["on-plate"], tnum=True)
+    t, _ = display("22", 300, -14, 300, P["on-plate"], tnum=True)
     b.append(t)
     t, _ = display("trabajos documentados", 50, 400, 92, P["on-plate"])
     b.append(t)
     t, _ = text("de mi primera web (2022) a visión artificial (2026)", 25, 402, 134, P["on-plate"], 400)
     b.append(t)
+    for k, (num, what) in enumerate((("11/11", "simulador armv8"), ("12/12", "unix v6 fs"), ("18/18", "agente de hex"))):
+        x = 402 + k * 260
+        t, _ = display(num, 46, x - 2, 206, P["on-plate"], tnum=True)
+        b.append(t)
+        t, _ = label(what, 15, x, 232, P["on-plate"])
+        b.append(t)
     # línea de tiempo con las fechas reales; mismo mes = se apilan hacia arriba
-    x0, x1, y = 400, 1180, 268
+    x0, x1, y = 400, 1180, 318
     span = (2022.0, 2027.0)
     fx = lambda v: x0 + (v - span[0]) / (span[1] - span[0]) * (x1 - x0)
     b.append(hline(x0, x1, y, P["on-plate"], 2))
@@ -408,13 +379,15 @@ def plate(P, dates):
         t, _ = label(str(yr), 16, fx(yr + 0.5), y + 40, P["on-plate"], anchor="middle")
         b.append(t)
     stack = defaultdict(int)
-    for d in sorted(dates):
+    for i, d in enumerate(sorted(dates)):
         yr, mo, dy = (int(v) for v in d.split("-"))
         v = yr + (mo - 1 + (dy - 1) / 31) / 12
         k = stack[d[:7]]
         stack[d[:7]] += 1
-        b.append(f'<circle cx="{ntos(fx(v))}" cy="{ntos(y - 22 - k * 17)}" r="6.5" fill="{P["on-plate"]}"/>')
-    return svg(W, H, "".join(b), "22 trabajos documentados entre 2022 y 2026, uno por punto en la línea de tiempo")
+        b.append(f'<circle class="pop" style="animation-delay:{0.2 + i * 0.08:.2f}s" cx="{ntos(fx(v))}" '
+                 f'cy="{ntos(y - 22 - k * 17)}" r="6.5" fill="{P["on-plate"]}"/>')
+    return svg(W, H, "".join(b), "22 trabajos documentados entre 2022 y 2026; entre ellos un simulador ARMv8 "
+               "(11 de 11 programas), un lector de Unix V6 (12 de 12 pruebas) y un agente de Hex (18 de 18 partidas)")
 
 
 # ---------------------------------------------------------------- main
@@ -429,7 +402,7 @@ DATES = ["2022-05-27", "2022-11-30", "2023-04-02", "2023-05-23", "2023-07-01", "
 def main(out_dir):
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    builders = {"masthead": masthead, "plate": lambda P: plate(P, DATES), "tools": tools,
+    builders = {"masthead": masthead, "plate": lambda P: plate(P, DATES), "tools": ticker,
                 **{f"head-{n}": (lambda P, n=n: head(P, n)) for n in CAPACIDADES},
                 **{f"poster-{k}": fn for k, fn in POSTERS.items()}}
     for name, fn in builders.items():

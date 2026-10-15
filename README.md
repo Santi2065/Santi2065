@@ -18,14 +18,8 @@ Ingeniería en IA en la UdeSA · [LinkedIn](https://linkedin.com/in/santiago-gro
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="assets/head-3-dark.svg"><img alt="3. Bases sólidas: sistemas e IA" src="assets/head-3-light.svg" width="100%"></picture>
 
-<p align="center">
-  <a href="https://github.com/Santi2065/armv8-simulator"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/poster-arm-dark.svg"><img alt="Simulador ARMv8 en C: 11 de 11 programas iguales al simulador de referencia" src="assets/poster-arm-light.svg" width="32%"></picture></a>
-  <a href="https://github.com/Santi2065/unix-v6-filesystem"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/poster-v6-dark.svg"><img alt="Lector del file system de Unix V6: 12 de 12 pruebas idénticas a la referencia" src="assets/poster-v6-light.svg" width="32%"></picture></a>
-  <a href="https://github.com/Santi2065/hex-alpha-beta-agent"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/poster-hex-dark.svg"><img alt="Agente de Hex alfa-beta: 18 de 18 partidas ganadas a los agentes base" src="assets/poster-hex-light.svg" width="32%"></picture></a>
-</p>
+<a href="https://github.com/Santi2065?tab=repositories"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/plate-dark.svg"><img alt="22 trabajos documentados entre 2022 y 2026; entre ellos un simulador ARMv8 (11 de 11 programas), un lector de Unix V6 (12 de 12 pruebas) y un agente de Hex (18 de 18 partidas)" src="assets/plate-light.svg" width="100%"></picture></a>
 
-<a href="https://github.com/Santi2065?tab=repositories"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/plate-dark.svg"><img alt="22 trabajos documentados entre 2022 y 2026, uno por punto en la línea de tiempo" src="assets/plate-light.svg" width="100%"></picture></a>
-
-<picture><source media="(prefers-color-scheme: dark)" srcset="assets/tools-dark.svg"><img alt="Herramientas — Lenguajes: Python, TypeScript, C, C++, Java. IA y ML: PyTorch, vLLM, llama.cpp, Ollama, Qdrant, MLflow. Datos: PostgreSQL, dbt, Dagster. Web: Next.js, React, FastAPI. Infra: Docker, Linux, AWS, nginx, Prometheus, Grafana, GitHub Actions. Idiomas: español, inglés, francés básico." src="assets/tools-light.svg" width="100%"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/tools-dark.svg"><img alt="Herramientas e idiomas: Python, TypeScript, C, C++, Java, PyTorch, vLLM, llama.cpp, Ollama, Qdrant, MLflow, PostgreSQL, dbt, Dagster, Next.js, React, FastAPI, Docker, Linux, AWS, nginx, Prometheus, Grafana, GitHub Actions; español, inglés y francés básico" src="assets/tools-light.svg" width="100%"></picture>
 
 <sub>Figuras con datos reales, generadas por [`scripts/build_profile.py`](scripts/build_profile.py).</sub>
