@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Hallmark · genre: editorial · macrostructure: Split Studio · theme: Grid (ultramarine)
+# Hallmark · genre: editorial · macrostructure: Portfolio Grid · theme: Grid (ultramarine)
 #   · tone: austere/technical · enrichment: Tier-B hand-built SVG (kit marks + real data)
 #   · nav: none (GitHub chrome) · footer: Ft2 inline single line · motion: none
 """Genera los SVG del README de perfil (versión clara y oscura de cada figura).
@@ -14,6 +14,7 @@ Requiere: pip install uharfbuzz fonttools
 """
 import io
 import math
+import random
 import os
 import sys
 from collections import defaultdict
@@ -184,100 +185,260 @@ def masthead(P):
     return svg(W, H, "".join(b), "Santiago Groba Alonso — desarrollador de software e IA, en producción desde 2020")
 
 
-# ---------------------------------------------------------------- figuras de prueba (dípticos)
+# ---------------------------------------------------------------- pósters (grilla de proyectos)
+# Cada póster: rótulo arriba, nombre en display, un objeto del kit en el medio y
+# el número clave abajo. Una sola tinta (signal) por póster.
 
-FW, FH = 600, 420
-
-
-def frame(P):
-    return rails(FW, FH, 6, P["rule"]) + hline(0, FW, 1, P["ink"], 2)
+PW, PH = 600, 600
 
 
-def fig_pdc(P):
-    b = [frame(P)]
-    t, _ = display("1.182", 124, -4, 132, P["ink"], tnum=True)
+def poster(P, tag, name, obj, big, cap, title, name_size=60, big_size=96):
+    b = [rails(PW, PH, 6, P["rule"]), hline(0, PW, 1, P["ink"], 2)]
+    t, _ = label(tag, 18, 0, 40, P["muted"])
     b.append(t)
-    t, _ = label("Casas de cambio · 62 ciudades", 19, 0, 170, P["muted"])
+    t, _ = display(name, name_size, -3, 108, P["ink"])
     b.append(t)
+    b.append(obj)
+    if big:
+        t, _ = display(big, big_size, -4, 548, P["ink"], tnum=True)
+        b.append(t)
+    t, _ = label(cap, 18, 0, 584, P["muted"])
+    b.append(t)
+    return svg(PW, PH, "".join(b), title)
+
+
+def p_pdc(P):
+    o = []
     cities = [("Bogotá", 226), ("Ipiales", 207), ("Medellín", 150), ("Cartagena", 101), ("Cúcuta", 97)]
-    x0, maxw = 200, 300
     for i, (city, n) in enumerate(cities):
-        y = 214 + i * 36
-        t, _ = text(city, 22, 0, y + 8, P["ink"], 500)
-        b.append(t)
-        w = maxw * n / cities[0][1]
-        b.append(rect(x0, y - 9, w, 18, P["signal"] if i == 0 else P["ink"]))
-        t, _ = text(str(n), 22, x0 + w + 12, y + 8, P["muted"], 500, tnum=True)
-        b.append(t)
-    t, _ = label("Las 5 ciudades con más casas · registro DIAN", 15, 0, 408, P["muted"])
-    b.append(t)
-    return svg(FW, FH, "".join(b), "PrecioDelDolarCo: 1.182 casas de cambio en 62 ciudades; Bogotá 226, Ipiales 207, Medellín 150, Cartagena 101, Cúcuta 97")
+        y = 186 + i * 52
+        t, _ = text(city, 24, 0, y + 9, P["ink"], 500)
+        o.append(t)
+        w = 290 * n / cities[0][1]
+        o.append(rect(190, y - 11, w, 22, P["signal"] if i == 0 else P["ink"]))
+        t, _ = text(str(n), 24, 190 + w + 12, y + 9, P["muted"], 500, tnum=True)
+        o.append(t)
+    return poster(P, "En producción · Colombia", "preciodeldolarco", "".join(o), "1.182",
+                  "casas de cambio en 62 ciudades",
+                  "PrecioDelDolarCo: 1.182 casas de cambio en 62 ciudades; Bogotá 226, Ipiales 207, Medellín 150, Cartagena 101, Cúcuta 97",
+                  name_size=54)
 
 
-def fig_llm(P):
-    b = [frame(P)]
-    t, _ = label("Segundos por respuesta", 19, 0, 44, P["muted"])
-    b.append(t)
-    s = 36  # px por segundo
+def p_llm(P):
+    o = []
     for i, (who, sec, num, fill) in enumerate((("antes", 10, "~10 s", P["muted"]), ("ahora", 3, "~3 s", P["signal"]))):
-        y = 80 + i * 74
-        b.append(rect(0, y, sec * s, 46, fill))
-        t, _ = display(num, 46, sec * s + 14, y + 40, P["ink"], tnum=True)
-        b.append(t)
-        t, _ = label(who, 15, 0, y + 64, P["muted"])
-        b.append(t)
-    b.append(hline(0, FW, 262, P["hair"]))
-    for i, (big, cap) in enumerate((("27B", "Parámetros"), ("FP8", "Precisión"), ("2", "GPU RTX 3090"))):
-        x = i * 200
-        if i:
-            b.append(vline(x, 262, 410, P["hair"]))
-        t, _ = display(big, 76, x + (14 if i else 0), 352, P["ink"], tnum=True)
-        b.append(t)
-        t, _ = label(cap, 15, x + (18 if i else 0), 392, P["muted"])
-        b.append(t)
-    return svg(FW, FH, "".join(b), "LLM on-premise: de unos 10 a unos 3 segundos por respuesta; 27B parámetros en FP8 sobre dos RTX 3090")
+        y = 168 + i * 112
+        o.append(rect(0, y, sec * 36, 52, fill))
+        t, _ = display(num, 52, sec * 36 + 16, y + 46, P["ink"], tnum=True)
+        o.append(t)
+        t, _ = label(f"{who} · segundos por respuesta", 16, 0, y + 80, P["muted"])
+        o.append(t)
+    return poster(P, "En producción · Escribanía", "llm on-premise", "".join(o), "27B",
+                  "parámetros · FP8 · 2× RTX 3090",
+                  "LLM on-premise: de unos 10 a unos 3 segundos por respuesta; 27B parámetros en FP8 sobre dos RTX 3090")
 
 
-def fig_research(P):
-    b = [frame(P)]
-    t, _ = label("Qué viaja del turno T1 al T2", 19, 0, 44, P["muted"])
-    b.append(t)
-    rows = (("preservar", "viaja todo", 270, P["ink"]),
-            ("comprimir", "viaja un resumen", 126, P["signal"]),
+def p_cot(P):
+    o = []
+    rows = (("preservar", "viaja todo", 250, P["ink"]), ("comprimir", "un resumen", 120, P["signal"]),
             ("descartar", "solo la respuesta", 40, P["ink"]))
     for i, (word, note, w, fill) in enumerate(rows):
-        y = 116 + i * 104
-        t, _ = display(word, 50, -2, y, P["ink"])
-        b.append(t)
-        t, _ = text(note, 20, 0, y + 32, P["muted"], 400)
-        b.append(t)
-        b.append(rect(FW - 300, y - 34, w, 34, fill))
-    t, _ = label("Esquema · no a escala", 15, 0, 408, P["muted"])
-    b.append(t)
-    return svg(FW, FH, "".join(b), "CoT-Compress: preservar, comprimir o descartar el razonamiento entre turnos")
+        y = 200 + i * 92
+        t, _ = display(word, 44, -2, y, P["ink"])
+        o.append(t)
+        t, _ = text(note, 19, 0, y + 28, P["muted"], 400)
+        o.append(t)
+        o.append(rect(PW - 260, y - 30, w, 30, fill))
+    return poster(P, "Investigación · UdeSA", "cot-compress", "".join(o), "6",
+                  "estrategias para el razonamiento entre turnos",
+                  "CoT-Compress: preservar, comprimir o descartar el razonamiento de un LLM entre turnos; 6 estrategias de compresión")
 
 
-def fig_infra(P):
-    b = [frame(P)]
-    t, _ = label("Desde", 19, 0, 44, P["muted"])
-    b.append(t)
-    t, _ = display("2020", 76, -2, 116, P["ink"], tnum=True)
-    b.append(t)
+def p_infra(P):
+    o = []
     cells = (("Soporte remoto", "de equipos"), ("Redes, backups", "y acceso remoto"),
              ("Renovación", "de hardware"), ("Monitoreo con", "Tactical RMM"))
-    top = 162
+    top = 160
+    o.append(rect(0, top - 1.5, 100, 3, P["signal"]))
     for i, (l1, l2) in enumerate(cells):
-        x, y = (i % 2) * 300, top + (i // 2) * 104
-        b.append(hline(x, x + 300, y, P["hair"]))
+        x, y = (i % 2) * 300, top + (i // 2) * 140
+        o.append(hline(x, x + 300, y, P["hair"]))
         if i % 2:
-            b.append(vline(x, y, y + 104, P["hair"]))
+            o.append(vline(x, y, y + 140, P["hair"]))
         pad = 16 if i % 2 else 0
-        t, _ = text(l1, 24, x + pad, y + 42, P["ink"], 500)
+        for k, line in enumerate((l1, l2)):
+            t, _ = text(line, 26, x + pad, y + 56 + k * 34, P["ink"], 500)
+            o.append(t)
+    o.append(hline(0, PW, top + 280, P["hair"]))
+    return poster(P, "Desde 2020 · CABA", "infraestructura", "".join(o), "2020",
+                  "escribanías y pymes",
+                  "Infraestructura de escribanías y pymes de CABA desde 2020: soporte, redes, backups, hardware y monitoreo")
+
+
+def p_derma(P):
+    o = []
+    s, gap = 64, 18
+    for i in range(7):
+        x = i * (s + gap)
+        o.append(rect(x, 250, s, s, P["signal"] if i == 3 else P["ink"]))
+    t, _ = label("7 clases de lesión · 10.015 imágenes", 18, 0, 362, P["muted"])
+    o.append(t)
+    return poster(P, "Visión artificial · 2026", "dermavision", "".join(o), "0,729",
+                  "macro-F1",
+                  "DermaVision: clasifica 7 tipos de lesiones de piel sobre 10.015 imágenes; 0,729 de macro-F1")
+
+
+def p_stereo(P):
+    o = []
+    obj = (300, 180)
+    cams = ((90, 370), (510, 370))
+    for cx, cy in cams:
+        o.append(f'<line x1="{cx}" y1="{cy}" x2="{obj[0]}" y2="{obj[1]}" stroke="{P["ink"]}" stroke-width="2"/>')
+        o.append(rect(cx - 36, cy - 4, 72, 44, P["ink"]))
+    o.append(hline(90, 510, 392, P["hair"], 1))
+    o.append(f'<circle cx="{obj[0]}" cy="{obj[1]}" r="34" fill="{P["signal"]}"/>')
+    t, _ = label("izquierda", 15, 54, 446, P["muted"])
+    o.append(t)
+    t, _ = label("derecha", 15, 546, 446, P["muted"], anchor="end")
+    o.append(t)
+    return poster(P, "Visión artificial · 2026", "estéreo 3d", "".join(o), "3,3 M",
+                  "puntos · 21 de 21 pares registrados",
+                  "Reconstrucción 3D estéreo: 3,3 millones de puntos, 21 de 21 pares registrados")
+
+
+def p_hex(P):
+    o = []
+    r = 19
+    dx, dy = r * math.sqrt(3), r * 1.5
+    n = 7
+    chain = {(0, 3), (1, 3), (2, 2), (3, 2), (4, 3), (5, 3), (6, 2)}  # esquema
+    for row in range(n):
+        for col in range(n):
+            cx = 70 + col * dx + row * dx / 2
+            cy = 190 + row * dy
+            pts = " ".join(f"{ntos(cx + r * math.cos(math.radians(60 * k + 30)))},"
+                           f"{ntos(cy + r * math.sin(math.radians(60 * k + 30)))}" for k in range(6))
+            filled = (col, row) in chain
+            o.append(f'<polygon points="{pts}" fill="{P["signal"] if filled else "none"}" '
+                     f'stroke="{P["signal"] if filled else P["hair"]}" stroke-width="1.5"/>')
+    t, _ = label("esquema · cadena de borde a borde", 15, 0, 452, P["muted"])
+    o.append(t)
+    return poster(P, "Fundamentos de IA · 2025", "agente de hex", "".join(o), "18/18",
+                  "partidas ganadas a los agentes base",
+                  "Agente de Hex con búsqueda alfa-beta: 18 de 18 partidas ganadas a los agentes base")
+
+
+def p_arm(P):
+    o = []
+    cw, y, h = PW / 32, 250, 70
+    for i in range(32):
+        bit = 31 - i
+        o.append(rect(i * cw + 1, y, cw - 2, h, P["signal"] if bit >= 21 else P["hair"]))
+    for bit, anchor in ((31, "start"), (21, "end"), (0, "end")):
+        x = (31 - bit) * cw + (0 if anchor == "start" else cw)
+        t, _ = text(str(bit), 20, x, y - 14, P["muted"], 500, anchor=anchor, tnum=True)
+        o.append(t)
+    t, _ = label("instrucción A64 de 32 bits", 16, 0, y + h + 40, P["muted"])
+    o.append(t)
+    t, _ = label("bits 31–21: clave de decodificación", 16, 0, y + h + 68, P["signal"])
+    o.append(t)
+    return poster(P, "Arquitectura · 2025", "simulador armv8", "".join(o), "11/11",
+                  "programas iguales a la referencia",
+                  "Simulador ARMv8 en C: 11 de 11 programas idénticos al simulador de referencia",
+                  name_size=56)
+
+
+def p_v6(P):
+    o = []
+    cw, y = 70, 190
+    t, _ = label("inodo · i_addr[8]", 16, 0, y - 16, P["muted"])
+    o.append(t)
+    for i in range(8):
+        x = i * (cw + 4)
+        o.append(rect(x, y, cw, 54, P["signal"] if i == 7 else P["ink"]))
+    for i in range(8):  # cada dirección apunta a un bloque de 256 direcciones
+        x = i * (cw + 4) + cw / 2
+        o.append(vline(x, y + 54, y + 96, P["hair"], 2))
+        for k in range(3):
+            o.append(rect(i * (cw + 4) + k * 24, y + 100, 20, 20, P["hair"]))
+    t, _ = label("7 indirectos + 1 doble indirecto", 16, 0, y + 170, P["muted"])
+    o.append(t)
+    return poster(P, "Sistemas operativos · 2025", "unix v6 fs", "".join(o), "12/12",
+                  "pruebas idénticas a la referencia",
+                  "Lector del file system de Unix V6 en C: salida idéntica a la de referencia en 12 de 12 pruebas")
+
+
+def p_pozos(P):
+    o = []
+    x0, x1, y0, y1, split = 0, 580, 160, 410, 300
+    o.append(hline(x0, x1, y1, P["hair"], 1))
+    q = lambda t: y1 - 240 / (1 + 0.012 * t) ** 1.6  # curva de Arps (esquema)
+    hist = " ".join(f"{ntos(t)},{ntos(q(t))}" for t in range(x0, split + 1, 6))
+    fore = " ".join(f"{ntos(t)},{ntos(q(t))}" for t in range(split, x1 + 1, 6))
+    o.append(f'<polyline points="{hist}" fill="none" stroke="{P["ink"]}" stroke-width="3"/>')
+    o.append(f'<polyline points="{fore}" fill="none" stroke="{P["signal"]}" stroke-width="3" stroke-dasharray="10 8"/>')
+    o.append(vline(split, y0, y1, P["hair"], 1))
+    t, _ = label("histórico", 15, split - 12, y0 + 18, P["muted"], anchor="end")
+    o.append(t)
+    t, _ = label("60 meses", 15, split + 12, y0 + 18, P["signal"])
+    o.append(t)
+    t, _ = label("esquema · Arps + LSTM", 15, 0, y1 + 30, P["muted"])
+    o.append(t)
+    return poster(P, "Ing. de software · 2026", "pozos", "".join(o), "4.929",
+                  "pozos con pronóstico a 60 meses",
+                  "Plataforma de pozos: pronóstico a 60 meses de 4.929 pozos con un modelo Arps + LSTM")
+
+
+def p_clear(P):
+    o = []
+    rnd = random.Random(7)
+    for k, (yc, noise, fill, tag) in enumerate(((220, 22, P["ink"], "con ruido"), (360, 0, P["signal"], "limpia"))):
+        pts = " ".join(f"{ntos(x)},{ntos(yc - 46 * math.sin(x / 38) + (rnd.uniform(-noise, noise) if noise else 0))}"
+                       for x in range(0, PW + 1, 5))
+        o.append(f'<polyline points="{pts}" fill="none" stroke="{fill}" stroke-width="{2 if noise else 3}"/>')
+        t, _ = label(tag, 15, 0, yc - 64, P["muted"])
+        o.append(t)
+    t, _ = label("esquema", 15, 0, 444, P["muted"])
+    o.append(t)
+    return poster(P, "Aprendizaje automático · 2025", "clearwave", "".join(o), "u-net",
+                  "autoencoders para quitar ruido de la voz",
+                  "ClearWave: elimina el ruido de la voz con autoencoders y una U-Net")
+
+
+def p_all(P):
+    o = []
+    # flecha de señalética hecha con rectángulos
+    o.append(rect(0, 290, 380, 40, P["ink"]))
+    o.append(f'<path d="M360 210L520 310L360 410Z" fill="{P["signal"]}"/>')
+    return poster(P, "github.com/Santi2065", "ver todos", "".join(o), "",
+                  "los trabajos, con figuras y resultados",
+                  "Ver todos los repositorios de Santiago Groba Alonso")
+
+
+# ---------------------------------------------------------------- herramientas
+
+def tools(P):
+    W, H = 1200, 400
+    b = [rails(W, H, 12, P["rule"]), hline(0, W, 1, P["ink"], 2), rect(0, 0, 200, 4, P["signal"])]
+    rows = (("Lenguajes", "Python · TypeScript · C · C++ · Java"),
+            ("IA y ML", "PyTorch · vLLM · llama.cpp · Ollama · Qdrant · MLflow"),
+            ("Datos", "PostgreSQL · dbt · Dagster"),
+            ("Web", "Next.js · React · FastAPI"),
+            ("Infra", "Docker · Linux · AWS · nginx · Prometheus · Grafana · GitHub Actions"),
+            ("Idiomas", "español · inglés · francés (básico)"))
+    for i, (cat, items) in enumerate(rows):
+        y = 70 + i * 60
+        t, _ = label(cat, 17, 6, y, P["muted"])
         b.append(t)
-        t, _ = text(l2, 24, x + pad, y + 74, P["ink"], 500)
+        t, _ = text(items, 28, 200, y + 2, P["ink"], 500)
         b.append(t)
-    b.append(rect(0, top - 1.5, 100, 3, P["signal"]))
-    return svg(FW, FH, "".join(b), "Infraestructura de escribanías y pymes de CABA desde 2020: soporte, redes, backups, hardware y monitoreo")
+        b.append(hline(0, W, y + 24, P["rule"]))
+    return svg(W, H, "".join(b), "Herramientas: " + "; ".join(f"{c}: {it}" for c, it in rows))
+
+
+POSTERS = {"pdc": p_pdc, "llm": p_llm, "cot": p_cot, "infra": p_infra, "derma": p_derma,
+           "stereo": p_stereo, "hex": p_hex, "arm": p_arm, "v6": p_v6, "pozos": p_pozos,
+           "clear": p_clear, "all": p_all}
 
 
 # ---------------------------------------------------------------- la placa
@@ -323,9 +484,8 @@ DATES = ["2022-05-27", "2022-11-30", "2023-04-02", "2023-05-23", "2023-07-01", "
 def main(out_dir):
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    builders = {"masthead": masthead, "proof-pdc": fig_pdc, "proof-llm": fig_llm,
-                "proof-research": fig_research, "proof-infra": fig_infra,
-                "plate": lambda P: plate(P, DATES)}
+    builders = {"masthead": masthead, "plate": lambda P: plate(P, DATES), "tools": tools,
+                **{f"poster-{k}": fn for k, fn in POSTERS.items()}}
     for name, fn in builders.items():
         for theme in ("light", "dark"):
             path = out / f"{name}-{theme}.svg"
