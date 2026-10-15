@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Hallmark · genre: editorial · macrostructure: Portfolio Grid · theme: Grid (ultramarine)
+# Hallmark · genre: editorial · macrostructure: Feature Stack (static, por capacidades) · theme: Grid (ultramarine)
 #   · tone: austere/technical · enrichment: Tier-B hand-built SVG (kit marks + real data)
 #   · nav: none (GitHub chrome) · footer: Ft2 inline single line · motion: none
 """Genera los SVG del README de perfil (versión clara y oscura de cada figura).
@@ -14,7 +14,6 @@ Requiere: pip install uharfbuzz fonttools
 """
 import io
 import math
-import random
 import os
 import sys
 from collections import defaultdict
@@ -36,6 +35,7 @@ TOKENS = {
         "muted":   (46, 0.012, 255),
         "rule":    (90, 0.006, 255),   # rieles de la grilla
         "hair":    (80, 0.008, 255),   # filetes entre celdas
+        "numeral": (94, 0.010, 255),   # numeral recortado de las cabeceras
         "signal":  (45, 0.190, 264),   # ultramar: la única tinta
         "on-plate": (98, 0.005, 255),
         "plate-rule": (53, 0.150, 264),
@@ -45,6 +45,7 @@ TOKENS = {
         "muted":   (72, 0.012, 255),
         "rule":    (26, 0.012, 255),
         "hair":    (36, 0.012, 255),
+        "numeral": (22, 0.016, 255),
         "signal":  (68, 0.150, 264),
         "on-plate": (98, 0.005, 255),
         "plate-rule": (53, 0.150, 264),
@@ -275,37 +276,6 @@ def p_infra(P):
                   "Infraestructura de escribanías y pymes de CABA desde 2020: soporte, redes, backups, hardware y monitoreo")
 
 
-def p_derma(P):
-    o = []
-    s, gap = 64, 18
-    for i in range(7):
-        x = i * (s + gap)
-        o.append(rect(x, 250, s, s, P["signal"] if i == 3 else P["ink"]))
-    t, _ = label("7 clases de lesión · 10.015 imágenes", 18, 0, 362, P["muted"])
-    o.append(t)
-    return poster(P, "Visión artificial · 2026", "dermavision", "".join(o), "0,729",
-                  "macro-F1",
-                  "DermaVision: clasifica 7 tipos de lesiones de piel sobre 10.015 imágenes; 0,729 de macro-F1")
-
-
-def p_stereo(P):
-    o = []
-    obj = (300, 180)
-    cams = ((90, 370), (510, 370))
-    for cx, cy in cams:
-        o.append(f'<line x1="{cx}" y1="{cy}" x2="{obj[0]}" y2="{obj[1]}" stroke="{P["ink"]}" stroke-width="2"/>')
-        o.append(rect(cx - 36, cy - 4, 72, 44, P["ink"]))
-    o.append(hline(90, 510, 392, P["hair"], 1))
-    o.append(f'<circle cx="{obj[0]}" cy="{obj[1]}" r="34" fill="{P["signal"]}"/>')
-    t, _ = label("izquierda", 15, 54, 446, P["muted"])
-    o.append(t)
-    t, _ = label("derecha", 15, 546, 446, P["muted"], anchor="end")
-    o.append(t)
-    return poster(P, "Visión artificial · 2026", "estéreo 3d", "".join(o), "3,3 M",
-                  "puntos · 21 de 21 pares registrados",
-                  "Reconstrucción 3D estéreo: 3,3 millones de puntos, 21 de 21 pares registrados")
-
-
 def p_hex(P):
     o = []
     r = 19
@@ -368,55 +338,6 @@ def p_v6(P):
                   "Lector del file system de Unix V6 en C: salida idéntica a la de referencia en 12 de 12 pruebas")
 
 
-def p_pozos(P):
-    o = []
-    x0, x1, y0, y1, split = 0, 580, 160, 410, 300
-    o.append(hline(x0, x1, y1, P["hair"], 1))
-    q = lambda t: y1 - 240 / (1 + 0.012 * t) ** 1.6  # curva de Arps (esquema)
-    hist = " ".join(f"{ntos(t)},{ntos(q(t))}" for t in range(x0, split + 1, 6))
-    fore = " ".join(f"{ntos(t)},{ntos(q(t))}" for t in range(split, x1 + 1, 6))
-    o.append(f'<polyline points="{hist}" fill="none" stroke="{P["ink"]}" stroke-width="3"/>')
-    o.append(f'<polyline points="{fore}" fill="none" stroke="{P["signal"]}" stroke-width="3" stroke-dasharray="10 8"/>')
-    o.append(vline(split, y0, y1, P["hair"], 1))
-    t, _ = label("histórico", 15, split - 12, y0 + 18, P["muted"], anchor="end")
-    o.append(t)
-    t, _ = label("60 meses", 15, split + 12, y0 + 18, P["signal"])
-    o.append(t)
-    t, _ = label("esquema · Arps + LSTM", 15, 0, y1 + 30, P["muted"])
-    o.append(t)
-    return poster(P, "Ing. de software · 2026", "pozos", "".join(o), "4.929",
-                  "pozos con pronóstico a 60 meses",
-                  "Plataforma de pozos: pronóstico a 60 meses de 4.929 pozos con un modelo Arps + LSTM")
-
-
-def p_clear(P):
-    o = []
-    rnd = random.Random(7)
-    for k, (yc, noise, fill, tag) in enumerate(((220, 22, P["ink"], "con ruido"), (360, 0, P["signal"], "limpia"))):
-        pts = " ".join(f"{ntos(x)},{ntos(yc - 46 * math.sin(x / 38) + (rnd.uniform(-noise, noise) if noise else 0))}"
-                       for x in range(0, PW + 1, 5))
-        o.append(f'<polyline points="{pts}" fill="none" stroke="{fill}" stroke-width="{2 if noise else 3}"/>')
-        t, _ = label(tag, 15, 0, yc - 64, P["muted"])
-        o.append(t)
-    t, _ = label("esquema", 15, 0, 444, P["muted"])
-    o.append(t)
-    return poster(P, "Aprendizaje automático · 2025", "clearwave", "".join(o), "u-net",
-                  "autoencoders para quitar ruido de la voz",
-                  "ClearWave: elimina el ruido de la voz con autoencoders y una U-Net")
-
-
-def p_all(P):
-    o = []
-    # flecha de señalética hecha con rectángulos
-    o.append(rect(0, 290, 380, 40, P["ink"]))
-    o.append(f'<path d="M360 210L520 310L360 410Z" fill="{P["signal"]}"/>')
-    return poster(P, "github.com/Santi2065", "ver todos", "".join(o), "",
-                  "los trabajos, con figuras y resultados",
-                  "Ver todos los repositorios de Santiago Groba Alonso")
-
-
-# ---------------------------------------------------------------- herramientas
-
 def tools(P):
     W, H = 1200, 400
     b = [rails(W, H, 12, P["rule"]), hline(0, W, 1, P["ink"], 2), rect(0, 0, 200, 4, P["signal"])]
@@ -436,9 +357,33 @@ def tools(P):
     return svg(W, H, "".join(b), "Herramientas: " + "; ".join(f"{c}: {it}" for c, it in rows))
 
 
-POSTERS = {"pdc": p_pdc, "llm": p_llm, "cot": p_cot, "infra": p_infra, "derma": p_derma,
-           "stereo": p_stereo, "hex": p_hex, "arm": p_arm, "v6": p_v6, "pozos": p_pozos,
-           "clear": p_clear, "all": p_all}
+POSTERS = {"pdc": p_pdc, "infra": p_infra, "llm": p_llm, "cot": p_cot,
+           "arm": p_arm, "v6": p_v6, "hex": p_hex}
+
+
+# ---------------------------------------------------------------- cabeceras de capacidad
+
+CAPACIDADES = {
+    1: ("llevo software", "a producción"),
+    2: ("ia que corre en", "casa del cliente"),
+    3: ("bases sólidas:", "sistemas e ia"),
+}
+
+
+def head(P, n):
+    """Título de una capacidad; el número es un objeto recortado, no un rótulo."""
+    W, H = 1200, 270
+    b = [rails(W, H, 12, P["rule"]), hline(0, W, 1, P["ink"], 2)]
+    t, _ = display(str(n), 420, W + 14, H + 96, P["numeral"], anchor="end", tnum=True)
+    b.append(t)
+    l1, l2 = CAPACIDADES[n]
+    t, _ = display(l1, 92, -5, 118, P["ink"])
+    b.append(t)
+    t, w2 = display(l2, 92, -5, 220, P["ink"])
+    b.append(t)
+    sq = 0.24 * 92
+    b.append(rect(-5 + w2 + 8, 220 - sq, sq, sq, P["signal"]))
+    return svg(W, H, "".join(b), f"{l1} {l2}")
 
 
 # ---------------------------------------------------------------- la placa
@@ -485,6 +430,7 @@ def main(out_dir):
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     builders = {"masthead": masthead, "plate": lambda P: plate(P, DATES), "tools": tools,
+                **{f"head-{n}": (lambda P, n=n: head(P, n)) for n in CAPACIDADES},
                 **{f"poster-{k}": fn for k, fn in POSTERS.items()}}
     for name, fn in builders.items():
         for theme in ("light", "dark"):
