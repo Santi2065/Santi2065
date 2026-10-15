@@ -9,9 +9,9 @@ Soy **Santi**. Estudio Ingeniería en Inteligencia Artificial en la UdeSA y desd
 
 ## En qué trabajo
 
-<a href="https://preciodeldolar.com.co"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/proof-pdc-dark.svg"><img align="right" width="46%" alt="1.182 casas de cambio en 62 ciudades; las cinco con más casas: Bogotá 226, Ipiales 207, Medellín 150, Cartagena 101, Cúcuta 97" src="assets/proof-pdc-light.svg"></picture></a>
-
 ### PrecioDelDolarCo
+
+<a href="https://preciodeldolar.com.co"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/proof-pdc-dark.svg"><img align="right" width="46%" alt="1.182 casas de cambio en 62 ciudades; las cinco con más casas: Bogotá 226, Ipiales 207, Medellín 150, Cartagena 101, Cúcuta 97" src="assets/proof-pdc-light.svg"></picture></a>
 
 Comparador de tasas de cambio en Colombia, en producción en [preciodeldolar.com.co](https://preciodeldolar.com.co). Compara tasas de compra y venta y lista 1.182 casas de cambio en 62 ciudades.
 
@@ -22,9 +22,9 @@ Comparador de tasas de cambio en Colombia, en producción en [preciodeldolar.com
 
 <br clear="right">
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="assets/proof-llm-dark.svg"><img align="left" width="46%" alt="Segundos por respuesta: antes unos 10, ahora unos 3; 27B parámetros, FP8, dos GPU RTX 3090" src="assets/proof-llm-light.svg"></picture>
-
 ### LLM on-premise
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/proof-llm-dark.svg"><img align="left" width="46%" alt="Segundos por respuesta: antes unos 10, ahora unos 3; 27B parámetros, FP8, dos GPU RTX 3090" src="assets/proof-llm-light.svg"></picture>
 
 Para el archivo de escrituras de una escribanía: Qwen3.8 de 27B parámetros en FP8, sobre dos RTX 3090 y adentro de la oficina: los documentos y las consultas se procesan ahí. Cada respuesta tarda unos 3 segundos; antes tardaba unos 10.
 
@@ -32,9 +32,9 @@ Para el archivo de escrituras de una escribanía: Qwen3.8 de 27B parámetros en 
 
 <br clear="left">
 
-<a href="https://github.com/joacocullen/cot-compress"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/proof-research-dark.svg"><img align="right" width="46%" alt="Esquema de qué viaja del turno T1 al T2: preservar todo, comprimir a un resumen o descartar y dejar solo la respuesta" src="assets/proof-research-light.svg"></picture></a>
-
 ### Investigación: CoT-Compress
+
+<a href="https://github.com/joacocullen/cot-compress"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/proof-research-dark.svg"><img align="right" width="46%" alt="Esquema de qué viaja del turno T1 al T2: preservar todo, comprimir a un resumen o descartar y dejar solo la respuesta" src="assets/proof-research-light.svg"></picture></a>
 
 ¿Conviene preservar o descartar el razonamiento de un LLM entre turnos? Un chat local que comprime el razonamiento del modelo y lo reinyecta como memoria, con 6 estrategias de compresión y pruebas exploratorias propias sobre Terminal-Bench 2.0.
 
@@ -44,9 +44,9 @@ Dirigido por Juan Wisznia (UdeSA). Paper en preparación.
 
 <br clear="right">
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="assets/proof-infra-dark.svg"><img align="left" width="46%" alt="Desde 2020: soporte remoto de equipos; redes, backups y acceso remoto; renovación de hardware; monitoreo con Tactical RMM" src="assets/proof-infra-light.svg"></picture>
-
 ### Infraestructura
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/proof-infra-dark.svg"><img align="left" width="46%" alt="Desde 2020: soporte remoto de equipos; redes, backups y acceso remoto; renovación de hardware; monitoreo con Tactical RMM" src="assets/proof-infra-light.svg"></picture>
 
 Escribanías y pymes de CABA, desde 2020. Ahí empecé: soporte remoto de equipos, redes, backups y acceso remoto, renovación de hardware y monitoreo con Tactical RMM.
 
