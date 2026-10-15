@@ -61,12 +61,12 @@ Ingeniería en Inteligencia Artificial en la UdeSA. Los trabajos con repositorio
 | Trabajo | Qué es | Resultado |
 |---|---|---|
 | **DermaVision**<br><sub>Visión artificial · 2026</sub> | Clasifica 7 tipos de lesiones de piel sobre 10.015 imágenes dermatoscópicas | 0,729 de macro-F1 |
-| **[stereo-3d-reconstruction](https://github.com/Santi2065/stereo-3d-reconstruction)**<br><sub>Visión artificial · 2026</sub> | Reconstrucción 3D estéreo de una estatua de cerámica | 21 de 21 pares registrados, 3,3 M de puntos |
-| **[Plataforma de pozos](https://github.com/joaco1212004/Ingenieria_de_Software---Groba-Salomon-Di_Cola)**<br><sub>Ingeniería de software · 2026</sub> | Pronóstico a 60 meses de 4.929 pozos con un modelo Arps + LSTM | — |
+| **[Estéreo&nbsp;3D](https://github.com/Santi2065/stereo-3d-reconstruction)**<br><sub>Visión artificial · 2026</sub> | Reconstrucción 3D estéreo de una estatua de cerámica | 21 de 21 pares registrados, 3,3 M de puntos |
+| **[Plataforma&nbsp;de&nbsp;pozos](https://github.com/joaco1212004/Ingenieria_de_Software---Groba-Salomon-Di_Cola)**<br><sub>Ingeniería de software · 2026</sub> | Pronóstico a 60 meses de 4.929 pozos con un modelo Arps + LSTM | — |
 | **ClearWave**<br><sub>Aprendizaje automático · 2025</sub> | Elimina el ruido de la voz con autoencoders y una U-Net | — |
-| **[hex-alpha-beta-agent](https://github.com/Santi2065/hex-alpha-beta-agent)**<br><sub>Fundamentos de IA · 2025</sub> | Agente de Hex con búsqueda alfa-beta y caminos mínimos (A*) | 18 de 18 partidas ganadas a los agentes base |
-| **[armv8-simulator](https://github.com/Santi2065/armv8-simulator)**<br><sub>Arquitectura de computadoras · 2025</sub> | Simulador funcional de ARMv8 (A64) en C | 11 de 11 programas iguales al simulador de referencia |
-| **[unix-v6-filesystem](https://github.com/Santi2065/unix-v6-filesystem)**<br><sub>Sistemas operativos · 2025</sub> | Lector del file system de Unix V6 en C | Salida idéntica a la de referencia en 12 de 12 pruebas |
+| **[Agente&nbsp;de&nbsp;Hex](https://github.com/Santi2065/hex-alpha-beta-agent)**<br><sub>Fundamentos de IA · 2025</sub> | Agente de Hex con búsqueda alfa-beta y caminos mínimos (A*) | 18 de 18 partidas ganadas a los agentes base |
+| **[Simulador&nbsp;ARMv8](https://github.com/Santi2065/armv8-simulator)**<br><sub>Arquitectura de computadoras · 2025</sub> | Simulador funcional de ARMv8 (A64) en C | 11 de 11 programas iguales al simulador de referencia |
+| **[File&nbsp;system&nbsp;V6](https://github.com/Santi2065/unix-v6-filesystem)**<br><sub>Sistemas operativos · 2025</sub> | Lector del file system de Unix V6 en C | Salida idéntica a la de referencia en 12 de 12 pruebas |
 
 [Ver todos los repositorios](https://github.com/Santi2065?tab=repositories)
 
