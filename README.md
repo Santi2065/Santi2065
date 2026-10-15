@@ -1,6 +1,6 @@
 <picture><source media="(prefers-color-scheme: dark)" srcset="assets/masthead-dark.svg"><img alt="Santiago Groba Alonso — desarrollador de software e IA, en producción desde 2020" src="assets/masthead-light.svg" width="100%"></picture>
 
-Ingeniería en IA en la UdeSA · sistemas en producción para escribanías y pymes · [LinkedIn](https://linkedin.com/in/santiago-groba)
+Ingeniería en IA en la UdeSA · [LinkedIn](https://linkedin.com/in/santiago-groba)
 
 <p align="center">
   <a href="https://preciodeldolar.com.co"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/poster-pdc-dark.svg"><img alt="PrecioDelDolarCo, en producción: 1.182 casas de cambio en 62 ciudades" src="assets/poster-pdc-light.svg" width="49%"></picture></a>
